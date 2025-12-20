@@ -16,7 +16,7 @@ import { CheckCircle, Cancel } from "@mui/icons-material";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { signOut } from 'next-auth/react';
-import { useNotification } from "../../contexts/NotificationContext";
+import { useNotification } from "../../../contexts/NotificationContext";
 
 const ChangePassword = () => {
   const { data: session } = useSession();

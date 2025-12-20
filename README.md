@@ -142,17 +142,5 @@ npm run test
 - Email functionality requires Mailgun account setup for production use
 - Password reset feature requires email verification for new recipients
 
-## 🤝 Contributing
-While this is a school project, suggestions and improvements are welcome. Please feel free to:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
-
-## 📞 Contact
-For questions or collaboration opportunities, reach out to:
-- [Julian Maximillian Willis](mailto:jmwillis.2022@business.smu.edu.sg)
-- LinkedIn: [Your LinkedIn Profile]
-- GitHub: [@julian-m-willis](https://github.com/julian-m-willis)
-
 ## 📄 License
 This project was developed as part of an SMU Software Project Management module assignment. All rights reserved.
