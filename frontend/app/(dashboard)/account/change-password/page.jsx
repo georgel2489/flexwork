@@ -11,15 +11,16 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Alert,
 } from "@mui/material";
 import { CheckCircle, Cancel } from "@mui/icons-material";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { signOut } from 'next-auth/react';
+import { useNotification } from "../../contexts/NotificationContext";
 
 const ChangePassword = () => {
   const { data: session } = useSession();
+  const { showSuccess, showError } = useNotification();
   const [token, setToken] = useState(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -33,8 +34,6 @@ const ChangePassword = () => {
     number: false,
     match: false,
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (session?.user) {
@@ -44,7 +43,6 @@ const ChangePassword = () => {
     }
   }, [session]);
 
-  // useEffect to validate passwords when the new password or confirm password changes
   useEffect(() => {
     const validatePassword = (password, confirmPassword) => {
       const rules = {
@@ -63,16 +61,14 @@ const ChangePassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (!passwordChecklist.match) {
-      setError("Passwords do not match.");
+      showError("Passwords do not match.");
       return;
     }
 
     if (!Object.values(passwordChecklist).every(Boolean)) {
-      setError("New password does not meet all the required rules.");
+      showError("New password does not meet all the required rules.");
       return;
     }
 
@@ -81,7 +77,7 @@ const ChangePassword = () => {
       return;
     }
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/changepassword`,
         {
           currentPassword,
@@ -93,15 +89,14 @@ const ChangePassword = () => {
           },
         }
       );
-      setSuccess("Password changed successfully! Signing Out ... ");
+      showSuccess("Password changed successfully! Signing Out ... ");
       setFieldsDisabled(true);
       setTimeout(() => {
         signOut({ callbackUrl: '/' });
       }, 2000);
 
     } catch (error) {
-      console.log(error);
-      setError(error.response?.data?.message || "Failed to change password");
+      showError(error.response?.data?.message || "Failed to change password");
     }
   };
 
@@ -112,9 +107,6 @@ const ChangePassword = () => {
         onSubmit={handleSubmit}
         sx={{ mt: 5, display: "flex", flexDirection: "column", gap: 3 }}
       >
-        {error && <Alert severity="error">{error}</Alert>}
-        {success && <Alert severity="success">{success}</Alert>}
-
         <TextField
           label="Current Password"
           type="password"
@@ -148,7 +140,6 @@ const ChangePassword = () => {
           disabled={fieldsDisabled}
         />
 
-        {/* Password Checklist */}
         <Typography variant="subtitle1">Password must contain:</Typography>
         <List>
           <ListItem>

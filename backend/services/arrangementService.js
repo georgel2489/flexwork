@@ -1,11 +1,11 @@
-const db = require("../models"); // Centralized import for all models
-const sequelize = db.sequelize; // Import sequelize instance for transactions
-const { Op } = require("sequelize"); // Import Sequelize operators
+const db = require("../models");
+const sequelize = db.sequelize;
+const { Op } = require("sequelize");
 const dayjs = require("dayjs");
 const notificationService = require("./notificationService");
 
-const pendingNotifications = {}; // In-memory store for notifications
-const DELAY = 5000; // Delay of 5 seconds
+const pendingNotifications = {};
+const DELAY = 5000;
 
 async function scheduleNotification(
   request_group_id,
@@ -13,34 +13,26 @@ async function scheduleNotification(
   message,
   title
 ) {
-  // If there is already a timer, clear it (reset the delay)
   if (pendingNotifications[request_group_id]) {
     clearTimeout(pendingNotifications[request_group_id].timer);
   }
 
-  // Create a new timeout to send the notification after the delay
   const timer = setTimeout(async () => {
     try {
-      // Send the notification asynchronously
       await notificationService.createNotification(staff_id, message, title);
-      // console.log("Notification sent for request group:", request_group_id);
     } catch (error) {
       console.error("Error sending notification:", error);
     }
 
-    // Remove the entry from pendingNotifications after sending
     delete pendingNotifications[request_group_id];
   }, DELAY);
 
-  // Store the staff_id, message, title, and timer in the object
   pendingNotifications[request_group_id] = { staff_id, message, title, timer };
 }
 
-// Create arrangement service with check for existing WFH requests (date-only comparison)
 exports.createArrangement = async (arrangementData) => {
-  const transaction = await sequelize.transaction(); // Begin a transaction for atomic operations
+  const transaction = await sequelize.transaction();
   try {
-    // Check for existing ArrangementRequest for the same staff and same date (ignoring time)
     const existingRequests = await db.ArrangementRequest.findAll({
       include: [
         {
@@ -54,19 +46,18 @@ exports.createArrangement = async (arrangementData) => {
             sequelize.fn("DATE", sequelize.col("start_date")),
             "=",
             arrangementData.start_date
-          ), // Compare only the date part
-          { request_status: ["Pending", "Approved"] }, // Check for Pending and Approved requests
+          ),
+          { request_status: ["Pending", "Approved"] },
         ],
       },
     });
-    // If there's an existing request for the same date with Pending/Approved status, throw an error
+
     if (existingRequests.length > 0) {
       throw new Error(
         "There is already a WFH request on this date for this staff member."
       );
     }
 
-    // Create a new Request Group for the staff member
     const newRequestGroup = await db.RequestGroup.create(
       {
         staff_id: arrangementData.staff_id,
@@ -75,12 +66,11 @@ exports.createArrangement = async (arrangementData) => {
       { transaction }
     );
 
-    // Create a new Arrangement Request
     const newArrangement = await db.ArrangementRequest.create(
       {
         session_type: arrangementData.session_type,
         start_date: arrangementData.start_date,
-        description: arrangementData.description || null, // Description is optional
+        description: arrangementData.description || null,
         request_status: "Pending",
         updated_at: new Date(),
         approval_comment: null,
@@ -90,7 +80,6 @@ exports.createArrangement = async (arrangementData) => {
       { transaction }
     );
 
-    // Send Notification
     const staff_query = await db.Staff.findByPk(arrangementData.staff_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -98,9 +87,9 @@ exports.createArrangement = async (arrangementData) => {
     const manager_id = staff_query.reporting_manager_id;
     const message = `${staff_full_name} submitted new ad-hoc WFH request`;
     await notificationService.createNotification(
-      manager_id, // Send notification to the manager
-      message, // Dynamic message with staff name
-      "New WFH Request" // Notification type
+      manager_id,
+      message,
+      "New WFH Request"
     );
     await transaction.commit();
     return newArrangement;
@@ -112,7 +101,7 @@ exports.createArrangement = async (arrangementData) => {
 };
 
 exports.createBatchArrangement = async (batchData) => {
-  const transaction = await sequelize.transaction(); // Begin a transaction for atomic operations
+  const transaction = await sequelize.transaction();
   try {
     const newRequests = [];
     const cancelledRequests = [];
@@ -127,7 +116,6 @@ exports.createBatchArrangement = async (batchData) => {
 
     const startDay = dayjs(start_date);
 
-    // Create the request group once for all occurrences in this batch
     const newRequestGroup = await db.RequestGroup.create(
       {
         staff_id: staff_id,
@@ -140,7 +128,6 @@ exports.createBatchArrangement = async (batchData) => {
       let dateToApply;
 
       if (i === 0) {
-        // Use the provided start date for the first occurrence
         dateToApply = startDay;
       } else {
         if (repeat_type === "weekly") {
@@ -152,7 +139,6 @@ exports.createBatchArrangement = async (batchData) => {
 
       const formattedDate = dateToApply.format("YYYY-MM-DD");
 
-      // Check if there is an existing request for this date
       const existingRequests = await db.ArrangementRequest.findAll({
         include: [
           {
@@ -172,7 +158,6 @@ exports.createBatchArrangement = async (batchData) => {
         },
       });
 
-      // Cancel existing requests if they exist
       if (existingRequests.length > 0) {
         for (const existingRequest of existingRequests) {
           await db.ArrangementRequest.update(
@@ -182,11 +167,10 @@ exports.createBatchArrangement = async (batchData) => {
               transaction,
             }
           );
-          cancelledRequests.push(existingRequest); // Track cancelled requests
+          cancelledRequests.push(existingRequest);
         }
       }
 
-      // Create a new Arrangement Request for each occurrence, using the same request group
       const newArrangement = await db.ArrangementRequest.create(
         {
           session_type: session_type,
@@ -196,15 +180,14 @@ exports.createBatchArrangement = async (batchData) => {
           updated_at: new Date(),
           approval_comment: null,
           approved_at: null,
-          request_group_id: newRequestGroup.request_group_id, // Use the same request group for all
+          request_group_id: newRequestGroup.request_group_id,
         },
         { transaction }
       );
 
-      newRequests.push(newArrangement); // Track new requests
+      newRequests.push(newArrangement);
     }
 
-    // Send Notification
     const staff_query = await db.Staff.findByPk(staff_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -212,9 +195,9 @@ exports.createBatchArrangement = async (batchData) => {
     const manager_id = staff_query.reporting_manager_id;
     const message = `${staff_full_name} submitted new repeating WFH request`;
     await notificationService.createNotification(
-      manager_id, // Send notification to the manager
-      message, // Dynamic message with staff name
-      "New WFH Request" // Notification type
+      manager_id,
+      message,
+      "New WFH Request"
     );
     await transaction.commit();
 
@@ -232,10 +215,9 @@ exports.createBatchArrangement = async (batchData) => {
   }
 };
 
-// Get all arrangements service
 exports.getAllArrangements = async () => {
   try {
-    const arrangements = await db.ArrangementRequest.findAll(); // Fetches all records
+    const arrangements = await db.ArrangementRequest.findAll();
     return arrangements;
   } catch (error) {
     console.error("Error fetching all arrangement requests:", error);
@@ -243,46 +225,66 @@ exports.getAllArrangements = async () => {
   }
 };
 
-// Get arrangements by manager service
-exports.getArrangementByManager = async (manager_id, manager_role) => {
-  // Get the manager's information to determine their role
+exports.getArrangementByManager = async (
+  manager_id,
+  page = 1,
+  limit = 10,
+  statusFilter = "All"
+) => {
   const manager = await db.Staff.findByPk(manager_id);
   if (!manager) {
     throw new Error("Manager not found");
   }
 
-  console.log(`Manager ID: ${manager_id}, Role: ${manager.role_id}`);
+  let staffWhereClause = {};
 
-  let whereClause = {};
-  
-  // Role hierarchy logic (NOT based on reporting_manager_id):
-  // Admin (role 1) can approve: ALL pending requests (Employees, Managers, Admins)
-  // Manager (role 3) can approve: Only Employees (role 2)
-  // Employee (role 2) cannot approve anyone
-  
   if (manager.role_id === 1) {
-    // Admin sees ALL pending requests regardless of who created them
-    whereClause = {}; // No filter - sees everyone
+    staffWhereClause = {};
   } else if (manager.role_id === 3) {
-    // Manager sees only employees (role 2)
-    whereClause = { 
-      role_id: 2  // Only employees
+    staffWhereClause = {
+      role_id: 2,
     };
   } else {
-    // Regular employees cannot approve requests
     return {
       manager_id: manager_id,
-      request_groups: []
+      request_groups: [],
+      pagination: {
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: 0,
+      },
     };
   }
 
-  console.log('Where clause:', JSON.stringify(whereClause));
+  let requestWhereClause = {};
+  if (statusFilter !== "All") {
+    requestWhereClause.request_status = statusFilter;
+  }
+
+  const offset = (page - 1) * limit;
+
+  const totalCount = await db.RequestGroup.count({
+    include: [
+      {
+        model: db.Staff,
+        where: staffWhereClause,
+        attributes: [],
+      },
+      {
+        model: db.ArrangementRequest,
+        where: requestWhereClause,
+        attributes: [],
+      },
+    ],
+    distinct: true,
+  });
 
   const requestGroups = await db.RequestGroup.findAll({
     include: [
       {
         model: db.Staff,
-        where: whereClause,
+        where: staffWhereClause,
         attributes: [
           "staff_id",
           "staff_fname",
@@ -295,7 +297,7 @@ exports.getArrangementByManager = async (manager_id, manager_role) => {
       },
       {
         model: db.ArrangementRequest,
-        // No status filter - show all statuses (Pending, Approved, Rejected, etc.)
+        where: requestWhereClause,
         attributes: [
           "arrangement_id",
           "session_type",
@@ -308,12 +310,11 @@ exports.getArrangementByManager = async (manager_id, manager_role) => {
         ],
       },
     ],
-    order: [['request_created_date', 'DESC']], // Sort by created date descending
+    order: [["request_created_date", "DESC"]],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
   });
-  
-  console.log(`Found ${requestGroups.length} request groups`);
-  
-  // Format the response
+
   const response = {
     manager_id: manager_id,
     request_groups: requestGroups.map((group) => ({
@@ -322,48 +323,47 @@ exports.getArrangementByManager = async (manager_id, manager_role) => {
       request_created_date: group.request_created_date,
       arrangement_requests: group.ArrangementRequests,
     })),
+    pagination: {
+      total: totalCount,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(totalCount / limit),
+    },
   };
   return response;
 };
 
-// Approve request service
 exports.approvePartialRequest = async (id, comment, data, manager_id) => {
   console.log(data);
   const transaction = await sequelize.transaction();
   try {
-    // Find the request group
     const requestGroup = await db.RequestGroup.findByPk(id, { transaction });
     if (!requestGroup) throw new Error("Request group not found");
 
-    // Get the staff member who made the request
-    const requester = await db.Staff.findByPk(requestGroup.staff_id, { transaction });
+    const requester = await db.Staff.findByPk(requestGroup.staff_id, {
+      transaction,
+    });
     if (!requester) throw new Error("Requester not found");
 
-    // Get the manager who is approving
     const approver = await db.Staff.findByPk(manager_id, { transaction });
     if (!approver) throw new Error("Approver not found");
 
-    // Role hierarchy validation (NOT based on reporting_manager_id)
     if (approver.role_id === 3 && requester.role_id !== 2) {
       throw new Error("Managers can only approve requests from Employees");
     }
-    
+
     if (approver.role_id === 2) {
       throw new Error("Employees cannot approve requests");
     }
 
-    // No reporting_manager_id check - role-based approval only
-
-    // Retrieve all arrangement requests associated with the request group
     const arrangementRequests = await db.ArrangementRequest.findAll({
       where: { request_group_id: id },
       transaction,
     });
-    // Iterate over each arrangement request and update based on provided data
+
     for (const request of arrangementRequests) {
       const arrangementId = request.arrangement_id;
       if (data[arrangementId] == "Approved") {
-        // Mark as "Approved" if present in data with "Approved" status
         await db.ArrangementRequest.update(
           { request_status: "Approved", approval_comment: comment },
           {
@@ -381,7 +381,6 @@ exports.approvePartialRequest = async (id, comment, data, manager_id) => {
           { transaction }
         );
       } else {
-        // Mark as "Rejected" if missing from data or has any other status
         await db.ArrangementRequest.update(
           { request_status: "Rejected", approval_comment: comment },
           {
@@ -392,7 +391,6 @@ exports.approvePartialRequest = async (id, comment, data, manager_id) => {
       }
     }
 
-    // Send Notification
     const staff_query = await db.Staff.findByPk(manager_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -405,48 +403,36 @@ exports.approvePartialRequest = async (id, comment, data, manager_id) => {
     return { requestGroup };
   } catch (error) {
     await transaction.rollback();
-    throw error; // Rethrow the error for the controller to handle
+    throw error;
   }
 };
 
 exports.approveRequest = async (id, comment, manager_id) => {
   const transaction = await sequelize.transaction();
   try {
-    // Find the request group
     const requestGroup = await db.RequestGroup.findByPk(id);
     if (!requestGroup) throw new Error("Request group not found");
 
-    // Get the staff member who made the request
     const requester = await db.Staff.findByPk(requestGroup.staff_id);
     if (!requester) throw new Error("Requester not found");
 
-    // Get the manager who is approving
     const approver = await db.Staff.findByPk(manager_id);
     if (!approver) throw new Error("Approver not found");
 
-    // Role hierarchy validation (NOT based on reporting_manager_id):
-    // Admin (1) can approve: Employee (2), Manager (3), Admin (1)
-    // Manager (3) can approve: Only Employee (2)
-    // Employee (2) cannot approve anyone
-    
     if (approver.role_id === 3 && requester.role_id !== 2) {
       throw new Error("Managers can only approve requests from Employees");
     }
-    
+
     if (approver.role_id === 2) {
       throw new Error("Employees cannot approve requests");
     }
 
-    // No reporting_manager_id check - role-based approval only
-
-    // Update request group status to approved
     await db.ArrangementRequest.update(
       { request_status: "Approved", approval_comment: comment },
       { where: { request_group_id: id } },
       { transaction }
     );
 
-    // Create schedule entries
     const requests = await db.ArrangementRequest.findAll({
       where: { request_group_id: id },
     });
@@ -463,7 +449,6 @@ exports.approveRequest = async (id, comment, manager_id) => {
       );
     }
 
-    // Send Notification
     const staff_query = await db.Staff.findByPk(manager_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -476,59 +461,52 @@ exports.approveRequest = async (id, comment, manager_id) => {
     return { requestGroup };
   } catch (error) {
     await transaction.rollback();
-    throw error; // Rethrow the error for the controller to handle
+    throw error;
   }
 };
 
 exports.rejectRequest = async (id, comment, manager_id) => {
   const transaction = await sequelize.transaction();
   try {
-    // Find the request group
     const requestGroup = await db.RequestGroup.findByPk(id, { transaction });
     if (!requestGroup) throw new Error("Request group not found");
 
-    // Get the staff member who made the request
-    const requester = await db.Staff.findByPk(requestGroup.staff_id, { transaction });
+    const requester = await db.Staff.findByPk(requestGroup.staff_id, {
+      transaction,
+    });
     if (!requester) throw new Error("Requester not found");
 
-    // Get the manager who is rejecting
     const approver = await db.Staff.findByPk(manager_id, { transaction });
     if (!approver) throw new Error("Approver not found");
 
-    // Role hierarchy validation (NOT based on reporting_manager_id)
     if (approver.role_id === 3 && requester.role_id !== 2) {
       throw new Error("Managers can only reject requests from Employees");
     }
-    
+
     if (approver.role_id === 2) {
       throw new Error("Employees cannot reject requests");
     }
 
-    // No reporting_manager_id check - role-based approval only
-
-    // Update request group status to "Rejected" with a transaction
     await db.ArrangementRequest.update(
       { request_status: "Rejected", approval_comment: comment },
       { where: { request_group_id: id }, transaction }
     );
 
-    // Get all arrangement requests related to the request group
     const requests = await db.ArrangementRequest.findAll({
       where: { request_group_id: id },
       transaction,
     });
 
-    // Loop through each arrangement request to delete related schedules
     for (const request of requests) {
       await db.Schedule.destroy({
         where: {
           staff_id: requestGroup.staff_id,
-          start_date: request.start_date, // Ensure start_date exists on request
+          start_date: request.start_date,
         },
         transaction,
       });
     }
-    // Send Notification
+
     const staff_query = await db.Staff.findByPk(manager_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -541,37 +519,34 @@ exports.rejectRequest = async (id, comment, manager_id) => {
     return { requestGroup };
   } catch (error) {
     await transaction.rollback();
-    throw error; // Rethrow the error for the controller to handle
+    throw error;
   }
 };
 
 exports.undo = async (id, comment, manager_id) => {
   const transaction = await sequelize.transaction();
   try {
-    // Find the request group
     const requestGroup = await db.RequestGroup.findByPk(id);
     if (!requestGroup) throw new Error("Request group not found");
 
     //Validation check to see if manager allowed to approve
 
-    // Update request group status to approved
     await db.ArrangementRequest.update(
       { request_status: "Pending", approval_comment: comment },
       { where: { request_group_id: id } },
       { transaction }
     );
-    // Get all arrangement requests related to the request group
+
     const requests = await db.ArrangementRequest.findAll({
       where: { request_group_id: id },
       transaction,
     });
 
-    // Loop through each arrangement request to delete related schedules
     for (const request of requests) {
       await db.Schedule.destroy({
         where: {
           staff_id: requestGroup.staff_id,
-          start_date: request.start_date, // Ensure start_date exists on request
+          start_date: request.start_date,
         },
         transaction,
       });
@@ -581,28 +556,24 @@ exports.undo = async (id, comment, manager_id) => {
     return { requestGroup };
   } catch (error) {
     await transaction.rollback();
-    throw error; // Rethrow the error for the controller to handle
+    throw error;
   }
 };
 
-// Revoke request service
 exports.revokeRequest = async (id, comment, manager_id) => {
   const transaction = await sequelize.transaction();
   try {
-    // Find the request group
     const requestGroup = await db.RequestGroup.findByPk(id);
     if (!requestGroup) throw new Error("Request group not found");
 
     //Validation check to see if manager allowed to approve
 
-    // Update request group status to approved
     await db.ArrangementRequest.update(
       { request_status: "Revoked", approval_comment: comment },
       { where: { request_group_id: id } },
       { transaction }
     );
 
-    // Create schedule entries
     const requests = await db.ArrangementRequest.findAll({
       where: { request_group_id: id },
     });
@@ -615,11 +586,10 @@ exports.revokeRequest = async (id, comment, manager_id) => {
           session_type: request.session_type,
           request_id: request.arrangement_id,
         },
-        transaction, // Include transaction for rollback if something fails
+        transaction,
       });
     }
 
-    // Send Notification
     const staff_query = await db.Staff.findByPk(manager_id);
     const staff_fname = staff_query.staff_fname;
     const staff_lname = staff_query.staff_lname;
@@ -636,16 +606,15 @@ exports.revokeRequest = async (id, comment, manager_id) => {
     return { requestGroup };
   } catch (error) {
     await transaction.rollback();
-    throw error; // Rethrow the error for the controller to handle
+    throw error;
   }
 };
 
-// Get arrangements by manager service
 exports.getApprovedRequests = async (manager_id) => {
   const requestGroups = await db.RequestGroup.findAll({
     include: [
       {
-        model: db.Staff, // Use db object for models
+        model: db.Staff,
         where: { reporting_manager_id: manager_id },
         attributes: [
           "staff_id",
@@ -671,23 +640,54 @@ exports.getApprovedRequests = async (manager_id) => {
       },
     ],
   });
-  // Format the response
+
   const response = {
     manager_id: manager_id,
     request_groups: requestGroups.map((group) => ({
       request_group_id: group.request_group_id,
       staff: group.Staff,
       request_created_date: group.request_created_date,
-      arrangement_requests: group.ArrangementRequests, // Assuming the association is set up
+      arrangement_requests: group.ArrangementRequests,
     })),
   };
   return response;
 };
 
-// Get arrangements by staff service
-// services/arrangementService.js
+exports.getArrangementbyStaff = async (
+  staff_id,
+  page = 1,
+  limit = 10,
+  statusFilter = "all"
+) => {
+  let requestWhereClause = {};
 
-exports.getArrangementbyStaff = async (staff_id) => {
+  if (statusFilter === "pending") {
+    requestWhereClause.request_status = "Pending";
+  } else if (statusFilter === "active") {
+    requestWhereClause.request_status = "Approved";
+  } else if (statusFilter === "history") {
+    requestWhereClause.request_status = {
+      [Op.in]: ["Withdrawn", "Completed", "Revoked", "Rejected"],
+    };
+  }
+
+  const offset = (page - 1) * limit;
+
+  const totalCount = await db.RequestGroup.count({
+    where: { staff_id },
+    include: [
+      {
+        model: db.ArrangementRequest,
+        where:
+          Object.keys(requestWhereClause).length > 0
+            ? requestWhereClause
+            : undefined,
+        attributes: [],
+      },
+    ],
+    distinct: true,
+  });
+
   const requestGroups = await db.RequestGroup.findAll({
     where: { staff_id },
     include: [
@@ -703,7 +703,10 @@ exports.getArrangementbyStaff = async (staff_id) => {
       },
       {
         model: db.ArrangementRequest,
-        // No `where` condition here to fetch all statuses
+        where:
+          Object.keys(requestWhereClause).length > 0
+            ? requestWhereClause
+            : undefined,
         attributes: [
           "arrangement_id",
           "session_type",
@@ -716,6 +719,9 @@ exports.getArrangementbyStaff = async (staff_id) => {
         ],
       },
     ],
+    order: [["request_created_date", "DESC"]],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
   });
 
   const response = {
@@ -726,6 +732,12 @@ exports.getArrangementbyStaff = async (staff_id) => {
       request_created_date: group.request_created_date,
       arrangement_requests: group.ArrangementRequests,
     })),
+    pagination: {
+      total: totalCount,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(totalCount / limit),
+    },
   };
 
   return response;

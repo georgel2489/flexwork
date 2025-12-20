@@ -9,24 +9,24 @@ const RevokeRequestsPage = () => {
   const [sortBy, setSortBy] = useState('request_created_date');
   const [requestGroups, setRequestGroups] = useState([]);
   const [comments, setComments] = useState({});
-  const [loading, setLoading] = useState(false);  // Track loading state for the revoke operation
-  const [error, setError] = useState(null);  // Track error state
-  const [dataLoading, setDataLoading] = useState(true); // Track data loading state
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State for confirmation dialog
-  const [openSuccessDialog, setOpenSuccessDialog] = useState(false); // State for success dialog
-  const [selectedRequest, setSelectedRequest] = useState(null); // Selected request for revocation
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const { data: session } = useSession();
   const [token, setToken] = useState(null);
 
   useEffect(() => {
     if (session?.user) {
       setToken(session.user.token);
-    }else{
+    } else {
       window.location.reload()
     }
   }, [session]);
 
-  // Fetch approved requests from the backend
+
   const fetchApprovedRequests = async () => {
     if (!token) return;
     try {
@@ -41,21 +41,21 @@ const RevokeRequestsPage = () => {
         }
       );
       const data = await response.json();
-      setRequestGroups(data.request_groups || []);  // Update state with request groups from API
-      setDataLoading(false); // Data has been loaded
+      setRequestGroups(data.request_groups || []);
+      setDataLoading(false);
     } catch (error) {
       console.error("Error fetching approved requests:", error);
       setError("Failed to load approved requests");
-      setDataLoading(false); // Even if there's an error, stop loading
+      setDataLoading(false);
     }
   };
 
   useEffect(() => {
-    // Call the API when the component mounts
+
     fetchApprovedRequests();
   }, [token]);
 
-  // Sorting Logic
+
   const handleSort = (sortField) => {
     const sortedGroups = [...requestGroups].sort((a, b) => {
       const firstDate = new Date(a[sortField]);
@@ -70,7 +70,7 @@ const RevokeRequestsPage = () => {
     handleSort(event.target.value);
   };
 
-  // Call API to revoke request
+
   const handleRevoke = async () => {
     const { groupId, arrangementId, comment } = selectedRequest;
     setLoading(true);
@@ -92,25 +92,25 @@ const RevokeRequestsPage = () => {
         throw new Error(result.error || 'Failed to revoke the request.');
       }
 
-      // Optionally remove the request from the UI after successful revocation
+
       setRequestGroups(prevGroups =>
-        prevGroups.map(group => 
+        prevGroups.map(group =>
           group.request_group_id === groupId
             ? {
-                ...group,
-                arrangement_requests: group.arrangement_requests.filter(req => req.arrangement_id !== arrangementId),
-              }
+              ...group,
+              arrangement_requests: group.arrangement_requests.filter(req => req.arrangement_id !== arrangementId),
+            }
             : group
         )
       );
-      
-      setOpenSuccessDialog(true); // Show success dialog
+
+      setOpenSuccessDialog(true);
     } catch (error) {
       console.error("Error revoking request:", error);
       setError(error.message || "Failed to revoke the request.");
     } finally {
       setLoading(false);
-      setOpenConfirmDialog(false); // Close confirmation dialog
+      setOpenConfirmDialog(false);
     }
   };
 
@@ -124,7 +124,7 @@ const RevokeRequestsPage = () => {
   const handleOpenConfirmDialog = (groupId, arrangementId) => {
     const comment = comments[arrangementId] || "";
     setSelectedRequest({ groupId, arrangementId, comment });
-    setOpenConfirmDialog(true); // Open confirmation dialog
+    setOpenConfirmDialog(true);
   };
 
   const handleCloseConfirmDialog = () => {
@@ -137,7 +137,7 @@ const RevokeRequestsPage = () => {
 
   return (
     <Box p={2}>
-      {/* Sorting Options */}
+
       <Box display="flex" justifyContent="space-between" mb={3}>
         <Typography variant="h5">Revoke Approved Requests</Typography>
         <Select value={sortBy} onChange={handleSortChange}>
@@ -146,12 +146,12 @@ const RevokeRequestsPage = () => {
         </Select>
       </Box>
 
-      {/* Loading Indicator */}
+
       {dataLoading ? (
         <Typography>Loading approved requests...</Typography>
       ) : (
         <>
-          {/* Request Group Cards */}
+
           <Stack spacing={3}>
             {requestGroups.length > 0 ? (
               requestGroups.map((group) => (
@@ -163,10 +163,10 @@ const RevokeRequestsPage = () => {
                     borderRadius: 2,
                     boxShadow: 3,
                     p: 2,
-                    width: '100%', 
+                    width: '100%',
                   }}
                 >
-                  {/* Header with Staff Info */}
+
                   <CardContent>
                     <Typography variant="h6">
                       {group.staff.staff_fname} {group.staff.staff_lname}
@@ -177,7 +177,7 @@ const RevokeRequestsPage = () => {
                     </Typography>
                     <Typography variant="body2">Number of Approved Requests: {group.arrangement_requests.length}</Typography>
 
-                    {/* Approved Arrangement Requests */}
+
                     <Stack spacing={2} mt={2}>
                       {group.arrangement_requests.map((request) => (
                         <Box key={request.arrangement_id}>
@@ -206,7 +206,7 @@ const RevokeRequestsPage = () => {
                             color="secondary"
                             size="small"
                             onClick={() => handleOpenConfirmDialog(group.request_group_id, request.arrangement_id)}
-                            disabled={loading}  // Disable button while loading
+                            disabled={loading}
                           >
                             {loading ? 'Revoking...' : 'Revoke'}
                           </Button>
@@ -223,7 +223,7 @@ const RevokeRequestsPage = () => {
         </>
       )}
 
-      {/* Confirmation Dialog */}
+
       <Dialog
         open={openConfirmDialog}
         onClose={handleCloseConfirmDialog}
@@ -244,7 +244,7 @@ const RevokeRequestsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Success Dialog */}
+
       <Dialog
         open={openSuccessDialog}
         onClose={handleCloseSuccessDialog}
@@ -262,7 +262,7 @@ const RevokeRequestsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Error Message */}
+
       {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
     </Box>
   );

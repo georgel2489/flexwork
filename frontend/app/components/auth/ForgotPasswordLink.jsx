@@ -1,4 +1,4 @@
-"use client"; // Make this a client-side component
+"use client";
 
 import * as React from "react";
 import { Link } from "@mui/material";

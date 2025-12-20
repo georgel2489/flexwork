@@ -37,7 +37,6 @@ export default function ResetPassword() {
   const [open, setOpen] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
-  // Password validation rules
   const passwordRules = {
     minLength: 8,
     hasUpperCase: /[A-Z]/,
@@ -94,7 +93,7 @@ export default function ResetPassword() {
     }
 
     setPasswordError(error);
-    return !error && Object.values(validation).every(Boolean); // Ensure all rules pass
+    return !error && Object.values(validation).every(Boolean);
   };
 
   const handleSubmit = async (e) => {
@@ -148,7 +147,6 @@ export default function ResetPassword() {
           <Typography variant="body2" color="textSecondary" align="center">
             Enter your new password below
           </Typography>
-          {/* Password rules */}{" "}
           <List sx={{ mt: 2, mb: 2 }} dense>
             <ListItem>
               <ListItemIcon>
@@ -263,7 +261,6 @@ export default function ResetPassword() {
             </Grid>
           </Box>
         </Box>
-        {/* Snackbar to display success or error message */}
         <Snackbar
           open={open}
           autoHideDuration={6000}

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Paper,
   Card,
   CardContent,
   Avatar,
@@ -13,7 +12,6 @@ import {
 import Grid from "@mui/material/Grid2";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-// import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 
@@ -23,7 +21,6 @@ export default function HomePage() {
   const [stats, setStats] = useState({
     pendingRequests: 0,
     waitingApproval: 0,
-    // notifications: 0,
   });
 
   useEffect(() => {
@@ -49,9 +46,6 @@ export default function HomePage() {
               headers: { Authorization: `Bearer ${token}` },
             }
           ),
-          // axios.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/`, {
-          //   headers: { Authorization: `Bearer ${token}` },
-          // }),
         ]);
 
         const filteredRequests = pendingRes.data.request_groups.filter(
@@ -61,17 +55,9 @@ export default function HomePage() {
           }
         );
 
-        // const unreadNotif = notificationsRes.data.filter(
-        //   (group) => {
-        //     const status = group.status;
-        //     return status === "unread";
-        //   }
-        // );
-
         setStats({
           pendingRequests: filteredRequests?.length || 0,
           waitingApproval: approvalRes?.data?.request_groups?.length || 0,
-          // notifications: unreadNotif?.length || 0,
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -86,29 +72,22 @@ export default function HomePage() {
       title: "Pending Requests",
       count: stats.pendingRequests,
       icon: <AssignmentIcon fontSize="large" />,
-      link: "/arrangement/view-my-request",
+      link: "/arrangement/my-requests",
     },
     ...(session?.user?.roles === 1 || session?.user?.roles === 3
       ? [
           {
-            title: "Waiting Approval",
+            title: "Approved Requests",
             count: stats.waitingApproval,
             icon: <AccessTimeIcon fontSize="large" />,
             link: "/arrangement/approve-arrangements",
           },
         ]
       : []),
-    // {
-    //   title: "Unread Notifications",
-    //   count: stats.notifications,
-    //   icon: <NotificationsActiveIcon fontSize="large" />,
-    //   link: "/notifications",
-    // },
   ];
 
   return (
     <Box sx={{ flexGrow: 1, mt: 4 }}>
-      {/* Welcome Message */}
       <Typography variant="h4" align="center" gutterBottom>
         Welcome, {session?.user?.name || "User"}!
       </Typography>
@@ -121,7 +100,6 @@ export default function HomePage() {
         Here is your dashboard overview.
       </Typography>
 
-      {/* Statistics Cards */}
       <Grid container spacing={4}>
         {statsWithIcons.map((stat, index) => (
           <Grid

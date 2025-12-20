@@ -4,14 +4,13 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { JWT_SECRET } = process.env;
 const { Op } = require("sequelize");
-const mailService = require("./mailService"); // Import mail service
+const mailService = require("./mailService");
 
-// Login Service
 exports.login = async (email, password) => {
   const staff = await Staff.findOne({
     where: {
       email: {
-        [Op.iLike]: email, // Case-insensitive match for PostgreSQL
+        [Op.iLike]: email,
       },
     },
   });
@@ -36,13 +35,11 @@ exports.login = async (email, password) => {
   };
 };
 
-// Forget Password Service
 exports.forgetPassword = async (email) => {
-  // return { message: 'Password has been reset successfully' };
   const staff = await Staff.findOne({
     where: {
       email: {
-        [Op.iLike]: email, // Case-insensitive match for PostgreSQL
+        [Op.iLike]: email,
       },
     },
   });
@@ -50,27 +47,25 @@ exports.forgetPassword = async (email) => {
     throw new Error("User not found");
   }
 
-  // Generate a reset token
   const token = crypto.randomBytes(32).toString("hex");
   staff.resetToken = token;
-  staff.resetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+  staff.resetTokenExpiry = Date.now() + 3600000;
   await staff.save();
-  // Call mail service to send the reset password email
+
   await mailService.sendResetPasswordEmail(email, token);
 
   return {
     email: staff.email,
     token,
     reset_url: `/auth/reset-password?token=${token}`,
-  }; // Optionally return the token (but generally not needed)
+  };
 };
 
-// Reset Password Service
 exports.resetPassword = async (token, newPassword) => {
   const staff = await Staff.findOne({
     where: {
       resetToken: token,
-      resetTokenExpiry: { [Op.gt]: Date.now() }, // Ensure token is not expired
+      resetTokenExpiry: { [Op.gt]: Date.now() },
     },
   });
 
@@ -78,17 +73,15 @@ exports.resetPassword = async (token, newPassword) => {
     throw new Error("Token is invalid or has expired");
   }
 
-  // Hash the new password and save it
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
   staff.hashed_password = hashedPassword;
-  staff.resetToken = null; // Clear the token
-  staff.resetTokenExpiry = null; // Clear the expiry time
+  staff.resetToken = null;
+  staff.resetTokenExpiry = null;
   await staff.save();
 
   return { message: "Password has been reset successfully" };
 };
 
-// Change Password Service
 exports.changePassword = async (staffId, currentPassword, newPassword) => {
   const staff = await Staff.findByPk(staffId);
   if (!staff) {
@@ -99,7 +92,6 @@ exports.changePassword = async (staffId, currentPassword, newPassword) => {
     throw new Error("Current password is incorrect");
   }
 
-  // Hash the new password and save it
   const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
   staff.hashed_password = hashedNewPassword;
   await staff.save();
@@ -107,26 +99,29 @@ exports.changePassword = async (staffId, currentPassword, newPassword) => {
   return { message: "Password changed successfully" };
 };
 
-// Get All Users Service
-exports.getAllUsers = async () => {
-  const users = await Staff.findAll({
+exports.getAllUsers = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+
+  const { count, rows: users } = await Staff.findAndCountAll({
     attributes: [
-      'staff_id',
-      'staff_fname',
-      'staff_lname',
-      'dept',
-      'position',
-      'country',
-      'email',
-      'reporting_manager_id',
-      'role_id',
-      'is_active',
-      'created_at',
+      "staff_id",
+      "staff_fname",
+      "staff_lname",
+      "dept",
+      "position",
+      "country",
+      "email",
+      "reporting_manager_id",
+      "role_id",
+      "is_active",
+      "created_at",
     ],
-    order: [['staff_id', 'ASC']],
+    order: [["staff_id", "ASC"]],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
   });
 
-  return users.map(user => ({
+  const formattedUsers = users.map((user) => ({
     id: user.staff_id,
     staff_id: user.staff_id,
     name: `${user.staff_fname} ${user.staff_lname}`,
@@ -141,9 +136,18 @@ exports.getAllUsers = async () => {
     is_active: user.is_active,
     created_at: user.created_at,
   }));
+
+  return {
+    users: formattedUsers,
+    pagination: {
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(count / limit),
+    },
+  };
 };
 
-// Create User Service
 exports.createUser = async (userData) => {
   const {
     staff_fname,
@@ -160,7 +164,7 @@ exports.createUser = async (userData) => {
 
   const existingStaff = await Staff.findOne({
     where: {
-      email: { [Op.iLike]: email }
+      email: { [Op.iLike]: email },
     },
   });
 
@@ -194,6 +198,34 @@ exports.createUser = async (userData) => {
       dept: newStaff.dept,
       position: newStaff.position,
       role: newStaff.role_id,
+    },
+  };
+};
+
+exports.updateUser = async (staffId, updateData) => {
+  const staff = await Staff.findByPk(staffId);
+
+  if (!staff) {
+    throw new Error("User not found");
+  }
+
+  const { staff_fname, staff_lname, position, is_active } = updateData;
+
+  if (staff_fname !== undefined) staff.staff_fname = staff_fname;
+  if (staff_lname !== undefined) staff.staff_lname = staff_lname;
+  if (position !== undefined) staff.position = position;
+  if (is_active !== undefined) staff.is_active = is_active;
+
+  staff.updated_at = new Date();
+  await staff.save();
+
+  return {
+    message: "User updated successfully",
+    user: {
+      id: staff.staff_id,
+      name: `${staff.staff_fname} ${staff.staff_lname}`,
+      position: staff.position,
+      is_active: staff.is_active,
     },
   };
 };

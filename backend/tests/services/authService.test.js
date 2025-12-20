@@ -121,10 +121,8 @@ describe("authService.forgetPassword", () => {
   it("should generate a reset token and send a password reset email", async () => {
     Staff.findOne.mockResolvedValue(mockStaff);
 
-    // Mock crypto.randomBytes to return a buffer that converts to a known string
     crypto.randomBytes = jest.fn(() => Buffer.from("mockResetToken"));
 
-    // Mocking the mail service call
     mailService.sendResetPasswordEmail.mockResolvedValue();
 
     const result = await authService.forgetPassword(mockEmail);
@@ -137,14 +135,12 @@ describe("authService.forgetPassword", () => {
       },
     });
 
-    // We expect any string for the token and URL
     expect(result).toEqual({
       email: mockEmail,
       token: expect.any(String),
       reset_url: expect.stringContaining("/auth/reset-password?token="),
     });
 
-    // Ensure that the save method was called on the user and the email was sent
     expect(mockStaff.save).toHaveBeenCalled();
     expect(mailService.sendResetPasswordEmail).toHaveBeenCalledWith(
       mockEmail,
@@ -176,7 +172,7 @@ describe("authService.resetPassword", () => {
   const mockStaff = {
     staff_id: 1,
     resetToken: mockToken,
-    resetTokenExpiry: Date.now() + 3600000, // Valid for 1 hour
+    resetTokenExpiry: Date.now() + 3600000,
     hashed_password: null,
     save: jest.fn(),
   };
@@ -194,7 +190,7 @@ describe("authService.resetPassword", () => {
     expect(Staff.findOne).toHaveBeenCalledWith({
       where: {
         resetToken: mockToken,
-        resetTokenExpiry: { [Op.gt]: expect.any(Number) }, // Date now check
+        resetTokenExpiry: { [Op.gt]: expect.any(Number) },
       },
     });
     expect(bcrypt.hashSync).toHaveBeenCalledWith(mockNewPassword, 10);

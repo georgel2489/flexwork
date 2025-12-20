@@ -1,38 +1,37 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const cors = require('cors');
-const authRoutes = require('./routes/authRoutes');
-const arrangementRoutes = require('./routes/arrangementRoutes');
-const scheduleRoutes = require('./routes/scheduleRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const { specs, swaggerUi } = require('./swagger');
-require('dotenv').config();
+const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
+const arrangementRoutes = require("./routes/arrangementRoutes");
+const scheduleRoutes = require("./routes/scheduleRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const holidayRoutes = require("./routes/holidayRoutes");
+const { specs, swaggerUi } = require("./swagger");
+require("dotenv").config();
 
-app.use(cors({
-  origin: '*', // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
-  credentials: true, // Allow credentials (if needed)
-}));
-// Middleware
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-// Route Definitions
-app.use('/auth', authRoutes);
-app.use('/arrangements', arrangementRoutes);
-app.use('/schedules', scheduleRoutes);
-app.use('/notification', notificationRoutes);
+app.use("/auth", authRoutes);
+app.use("/arrangements", arrangementRoutes);
+app.use("/schedules", scheduleRoutes);
+app.use("/notification", notificationRoutes);
+app.use("/holidays", holidayRoutes);
 
-
-// Global Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).send("Something broke!");
 });
 
-// Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

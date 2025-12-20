@@ -40,8 +40,12 @@ exports.getAllArrangements = async (req, res) => {
 exports.getArrangementbyManager = async (req, res) => {
   try {
     const manager_id = req.user.staff_id;
+    const { page = 1, limit = 10, status = "All" } = req.query;
     const arrangements = await arrangementService.getArrangementByManager(
-      manager_id
+      manager_id,
+      page,
+      limit,
+      status
     );
     res.status(200).json(arrangements);
   } catch (error) {
@@ -50,13 +54,16 @@ exports.getArrangementbyManager = async (req, res) => {
   }
 };
 
-// Approve ALL request controller
 exports.approveRequest = async (req, res) => {
   const manager_id = req.user.staff_id;
   const { id } = req.params;
   const { comment } = req.body;
   try {
-    const result = await arrangementService.approveRequest(id, comment, manager_id);
+    const result = await arrangementService.approveRequest(
+      id,
+      comment,
+      manager_id
+    );
     return res.status(200).json({ message: "Request approved", data: result });
   } catch (error) {
     console.error(error);
@@ -64,13 +71,17 @@ exports.approveRequest = async (req, res) => {
   }
 };
 
-// Approve PARTIAL request controller
 exports.approvePartialRequest = async (req, res) => {
   const manager_id = req.user.staff_id;
   const { id } = req.params;
   const { comment, data } = req.body;
   try {
-    const result = await arrangementService.approvePartialRequest(id, comment, data, manager_id);
+    const result = await arrangementService.approvePartialRequest(
+      id,
+      comment,
+      data,
+      manager_id
+    );
     return res.status(200).json({ message: "Request approved", data: result });
   } catch (error) {
     console.error(error);
@@ -83,7 +94,11 @@ exports.rejectRequest = async (req, res) => {
   const { id } = req.params;
   const { comment } = req.body;
   try {
-    const result = await arrangementService.rejectRequest(id, comment, manager_id);
+    const result = await arrangementService.rejectRequest(
+      id,
+      comment,
+      manager_id
+    );
     return res.status(200).json({ message: "Request rejected", data: result });
   } catch (error) {
     console.error(error);
@@ -104,13 +119,16 @@ exports.undo = async (req, res) => {
   }
 };
 
-// Revoke request controller
 exports.revokeRequest = async (req, res) => {
   const manager_id = req.user.staff_id;
   const { id } = req.params;
   const { comment } = req.body;
   try {
-    const result = await arrangementService.revokeRequest(id, comment, manager_id);
+    const result = await arrangementService.revokeRequest(
+      id,
+      comment,
+      manager_id
+    );
     return res.status(200).json({ message: "Request revoked", data: result });
   } catch (error) {
     console.error(error);
@@ -134,8 +152,12 @@ exports.getApprovedRequests = async (req, res) => {
 exports.getArrangementbyStaff = async (req, res) => {
   try {
     const staff_id = req.user.staff_id;
+    const { page = 1, limit = 10, status = "all" } = req.query;
     const arrangements = await arrangementService.getArrangementbyStaff(
-      staff_id
+      staff_id,
+      page,
+      limit,
+      status
     );
     res.status(200).json(arrangements);
   } catch (error) {
@@ -150,7 +172,11 @@ exports.withdrawRequest = async (req, res) => {
   const { comment } = req.body;
 
   try {
-    const result = await arrangementService.withdrawRequest(id, comment, staff_id);
+    const result = await arrangementService.withdrawRequest(
+      id,
+      comment,
+      staff_id
+    );
     return res.status(200).json({ message: "Request withdrawn", data: result });
   } catch (error) {
     console.error(error);

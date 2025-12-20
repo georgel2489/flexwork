@@ -23,8 +23,8 @@ const theme = createTheme();
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState("success"); // success or error
-  const [open, setOpen] = useState(false); // To control the snackbar visibility
+  const [severity, setSeverity] = useState("success");
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,11 +35,11 @@ export default function ForgetPassword() {
       );
       setMessage(response.data.message);
       setSeverity("success");
-      setOpen(true); // Open success snackbar
+      setOpen(true);
     } catch (error) {
       setMessage(error.response?.data?.message || "Something went wrong");
       setSeverity("error");
-      setOpen(true); // Open error snackbar
+      setOpen(true);
     }
   };
 
@@ -106,7 +106,6 @@ export default function ForgetPassword() {
             </Grid>
           </Box>
         </Box>
-        {/* Snackbar to display the success or error message */}
         <Snackbar
           open={open}
           autoHideDuration={6000}

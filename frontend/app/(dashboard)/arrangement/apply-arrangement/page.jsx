@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter"; // Import isSameOrAfter plugin
-dayjs.extend(isSameOrAfter); // Extend Day.js
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+dayjs.extend(isSameOrAfter);
 
 import {
   Radio,
@@ -25,6 +26,7 @@ import { useNotification } from "../../../contexts/NotificationContext";
 
 const ApplyArrangementPage = () => {
   const { data: session } = useSession();
+  const router = useRouter();
   const { showSuccess, showError, showWarning } = useNotification();
   const [token, setToken] = useState(null);
 
@@ -36,7 +38,7 @@ const ApplyArrangementPage = () => {
     }
   }, [session]);
 
-  // Function to calculate 2 working days in advance
+
   const calculateTwoWorkingDays = () => {
     const today = dayjs().startOf("day");
     let daysToAdd = 2;
@@ -45,14 +47,14 @@ const ApplyArrangementPage = () => {
     while (daysToAdd > 0) {
       adjustedDate = adjustedDate.add(1, "day");
       if (adjustedDate.day() !== 0 && adjustedDate.day() !== 6) {
-        // Skip weekends
+
         daysToAdd--;
       }
     }
     return adjustedDate;
   };
 
-  // Set placeholder to 2 working days in advance
+
   const [selectedDate, setSelectedDate] = useState(calculateTwoWorkingDays());
   const [startDate, setStartDate] = useState(calculateTwoWorkingDays());
   const [loading, setLoading] = useState(false);
@@ -107,7 +109,7 @@ const ApplyArrangementPage = () => {
 
   const handleNumOccurrencesChange = (event) => {
     const value = parseInt(event.target.value, 10);
-    setNumOccurrences(value > 0 ? Math.min(value, 12) : 1); // Ensure minimum of 1 and maximum of 12 occurrences
+    setNumOccurrences(value > 0 ? Math.min(value, 12) : 1);
   };
 
   const submitAdhocRequest = async () => {
@@ -138,12 +140,15 @@ const ApplyArrangementPage = () => {
       );
 
       showSuccess("Your WFH request has been submitted successfully!");
-      
-      // Reset form
+
+
       setApplyMode("");
       setSessionType("");
       setDesc("");
       setSelectedDate(calculateTwoWorkingDays());
+
+
+      setTimeout(() => router.push("/arrangement/my-requests"), 1500);
     } catch (error) {
       console.error("Error applying:", error);
       showError("There was an error processing your request. Please try again.");
@@ -166,7 +171,7 @@ const ApplyArrangementPage = () => {
       return;
     }
 
-    // Check if the start date matches the selected day of the week
+
     const selectedDayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(selectedDaysOfWeek);
     if (startDate.day() !== selectedDayIndex) {
       showWarning(`The start date must match the selected day (${selectedDaysOfWeek}).`);
@@ -175,9 +180,9 @@ const ApplyArrangementPage = () => {
 
     try {
       const batchData = {
-        staff_id: session.user.staff_id, // Send the staff_id from session data
+        staff_id: session.user.staff_id,
         session_type: sessionType,
-        description: desc || null, // Optional description
+        description: desc || null,
         num_occurrences: numOccurrences,
         repeat_type: repeatType,
         start_date: startDate.format("YYYY-MM-DD"),
@@ -204,9 +209,12 @@ const ApplyArrangementPage = () => {
       }
 
       showSuccess(successMessage);
-      
-      // Reset form
+
+
       setApplyMode("");
+
+
+      setTimeout(() => router.push("/arrangement/my-requests"), 1500);
       setSessionType("");
       setDesc("");
       setSelectedDaysOfWeek("");
@@ -224,7 +232,6 @@ const ApplyArrangementPage = () => {
   return (
     <Container>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 2 }}>
-        {/* Dropdown to switch between Ad-hoc and Batch Apply */}
         <FormControl fullWidth>
           <InputLabel id="apply-mode-select-label">Apply Mode</InputLabel>
           <Select
@@ -239,7 +246,6 @@ const ApplyArrangementPage = () => {
           </Select>
         </FormControl>
 
-        {/* Session Type Selection */}
         <FormControl fullWidth>
           <InputLabel id="session-type-label">Session Type</InputLabel>
           <Select
@@ -249,8 +255,8 @@ const ApplyArrangementPage = () => {
             value={sessionType}
             onChange={handleSessionType}
           >
-            <MenuItem value={"Work from home"}>Work from Home</MenuItem>
-            <MenuItem value={"Off day"}>Off Day</MenuItem>
+            <MenuItem value={"Work home"}>Work home</MenuItem>
+            <MenuItem value={"Day off"}>Day off</MenuItem>
             <MenuItem value={"Vacation"}>Vacation</MenuItem>
             {session?.user?.role === 1 && (
               <MenuItem value={"Official holiday"}>Official Holiday</MenuItem>
@@ -258,7 +264,7 @@ const ApplyArrangementPage = () => {
           </Select>
         </FormControl>
 
-        {/* Ad-hoc Apply Form */}
+
         {applyMode === "ad-hoc" && (
           <>
             <TextField
@@ -279,7 +285,7 @@ const ApplyArrangementPage = () => {
           </>
         )}
 
-        {/* Batch Apply Form */}
+
         {applyMode === "batch" && (
           <>
             <TextField
@@ -320,7 +326,7 @@ const ApplyArrangementPage = () => {
               fullWidth
             />
 
-            {/* Repeat Options */}
+
             <FormControl fullWidth>
               <InputLabel id="repeat-type-label">Repeat Type</InputLabel>
               <Select
@@ -335,7 +341,7 @@ const ApplyArrangementPage = () => {
               </Select>
             </FormControl>
 
-            {/* Description (Optional) */}
+
             <TextField
               id="description"
               label="Description (Optional)"
@@ -346,7 +352,7 @@ const ApplyArrangementPage = () => {
           </>
         )}
 
-        {/* Submit Button */}
+
         <Button
           variant="contained"
           size="large"

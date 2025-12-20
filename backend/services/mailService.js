@@ -3,7 +3,7 @@ const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
   username: "api",
-  key: process.env.MAILGUN_API_KEY || "test-key", // Fallback to "test-key" if not set
+  key: process.env.MAILGUN_API_KEY || "test-key",
 });
 
 exports.sendResetPasswordEmail = async (email, token) => {
@@ -12,8 +12,6 @@ exports.sendResetPasswordEmail = async (email, token) => {
     "sandbox4bdbbd09b21542d1a41ef3ab735ddbd1.mailgun.org",
     {
       from: "AllinOne WFH System <mailgun@sandbox4bdbbd09b21542d1a41ef3ab735ddbd1.mailgun.org>",
-      //   to: email,
-      // hardcoded currently
       to: "julian.maximal@gmail.com",
       subject: "Password Reset",
       html: `

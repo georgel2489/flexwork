@@ -1,19 +1,15 @@
 import * as React from 'react';
 import { AppProvider } from '@toolpad/core/nextjs';
-import Chip from '@mui/material/Chip';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
-import BusinessIcon from '@mui/icons-material/Business';
 import LanguageIcon from '@mui/icons-material/Language';
-import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
 import LockResetIcon from '@mui/icons-material/LockReset';
-// import NotificationsIcon from '@mui/icons-material/Notifications';
 import PeopleIcon from '@mui/icons-material/People';
+import EventIcon from '@mui/icons-material/Event';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
 import theme from '../theme';
@@ -24,32 +20,24 @@ const NAVIGATION = [
     title: 'Dashboard',
     icon: <DashboardIcon />,
   },
-  // {
-  //   segment: 'notifications',
-  //   title: 'Notifications',
-  //   icon: <NotificationsIcon />,
-  // },
-  // {
-  //   kind: 'divider',
-  // },
   {
     kind: 'header',
     title: 'Schedules',
   },
   {
-    segment: 'schedule/view-own-schedule',
+    segment: 'schedule/own-schedule',
     title: 'My Schedule',
     icon: <PersonIcon />,
   },
   {
-    segment: 'schedule/view-team-schedule',
+    segment: 'schedule/team-schedule',
     title: "Team's Schedule",
     icon: <GroupIcon />,
-    roles: [2, 3],
+    roles: [3],
   },
   {
-    segment: 'schedule/view-organization-schedule',
-    title: "View Organization's Schedule",
+    segment: 'schedule/organization-schedule',
+    title: "Team's Schedule",
     icon: <LanguageIcon />,
     roles: [1],
   },
@@ -61,8 +49,8 @@ const NAVIGATION = [
     title: 'Arrangement Requests',
   },
   {
-    segment: 'arrangement/view-my-request',
-    title: 'View My Request',
+    segment: 'arrangement/my-requests',
+    title: 'My Requests',
     icon: <CalendarTodayIcon />,
   },
   {
@@ -96,6 +84,12 @@ const NAVIGATION = [
     roles: [1],
   },
   {
+    segment: 'holidays',
+    title: 'Official Holidays',
+    icon: <EventIcon />,
+    roles: [1],
+  },
+  {
     kind: 'divider',
   },
   {
@@ -110,7 +104,7 @@ const NAVIGATION = [
 ];
 
 const BRANDING = {
-  title: 'All-in-One',
+  title: 'Corlab',
 };
 
 
@@ -122,9 +116,8 @@ const AUTHENTICATION = {
 
 export default async function RootLayout(props) {
   const session = await auth();
-  const userRoles = session?.user?.roles; // Assuming roles are stored in session
+  const userRoles = session?.user?.roles; 
 
-  // Filter navigation based on user roles
   const accessibleNavigation = NAVIGATION.filter(item =>
     !item.roles || item.roles.includes(userRoles)
   );

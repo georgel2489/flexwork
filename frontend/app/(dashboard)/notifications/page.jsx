@@ -101,11 +101,10 @@ export default function NotificationCenter() {
     if (notification.type === "WFH Request") {
       router.push("/arrangement/approve-arrangements");
     } else if (notification.type === "WFH Approved") {
-      router.push("/arrangement/view-my-request");
+      router.push("/arrangement/my-requests");
     }
   };
 
-  // Pagination Calculations
   const indexOfLastNotification = currentPage * notificationsPerPage;
   const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage;
   const currentNotifications = notifications.slice(indexOfFirstNotification, indexOfLastNotification);
@@ -122,7 +121,6 @@ export default function NotificationCenter() {
     }
   };
 
-  // Check if all notifications are read
   const allRead = notifications.length == 0 || notifications.every(notification => notification.status === "read");
 
   return (
@@ -131,12 +129,12 @@ export default function NotificationCenter() {
         variant="contained"
         onClick={handleMarkAllAsRead}
         sx={{ mb: 2 }}
-        disabled={allRead} // Disable button if all notifications are read
+        disabled={allRead}
       >
         Mark All as Read
       </Button>
       <Paper elevation={3}>
-        {notifications.length === 0 ? ( // Check if notifications list is empty
+        {notifications.length === 0 ? (
           <Typography sx={{ p: 2, textAlign: "center" }}>
             No notifications available.
           </Typography>
@@ -149,7 +147,7 @@ export default function NotificationCenter() {
                   backgroundColor: notification.status === "unread" ? "#ffbf80" : "transparent",
                   cursor: "pointer",
                   "&:hover": {
-                    opacity: 0.8, // Minimal hover effect for both light and dark modes
+                    opacity: 0.8,
                   },
                 }}
                 onClick={() => handleNotificationClick(notification)}

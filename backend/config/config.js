@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env
+require("dotenv").config();
 
 module.exports = {
   development: {
@@ -6,32 +6,32 @@ module.exports = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    dialect: 'postgres',
+    dialect: "postgres",
     port: process.env.DB_PORT,
-    logging: false
+    logging: false,
   },
   test: {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    dialect: 'postgres',
+    dialect: "postgres",
     port: process.env.DB_PORT,
-    logging: false
+    logging: false,
   },
   production: {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    dialect: 'postgres',
+    dialect: "postgres",
     port: process.env.DB_PORT,
     logging: false,
     dialectOptions: {
       ssl: {
-        require: true,             // Enforce SSL
-        rejectUnauthorized: false  // Allow self-signed certs (RDS default)
-      }
-    }
-  }
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  },
 };

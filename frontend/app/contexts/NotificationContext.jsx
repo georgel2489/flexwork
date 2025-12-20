@@ -17,7 +17,7 @@ export const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState({
     open: false,
     message: '',
-    severity: 'info', // 'success', 'error', 'warning', 'info'
+    severity: 'info',
   });
 
   const showNotification = (message, severity = 'info') => {

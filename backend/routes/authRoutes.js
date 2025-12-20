@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const authenticateToken = require("../middleware/authenticateTokenMiddleware");
+const authorizeRole = require("../middleware/authorizeRoleMiddleware");
 
 /**
  * @swagger
@@ -126,7 +127,7 @@ router.post(
  * @swagger
  * /auth/users:
  *   get:
- *     summary: Get all users
+ *     summary: Get all users (Admin only)
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -158,15 +159,19 @@ router.post(
  *                     type: boolean
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
-router.get("/users", authenticateToken, authController.getAllUsers);
+router.get("/users", authenticateToken, authorizeRole([1]), authController.getAllUsers);
 
 /**
  * @swagger
  * /auth/createuser:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user (Admin only)
  *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -240,7 +245,53 @@ router.get("/users", authenticateToken, authController.getAllUsers);
  *         description: User already exists or validation error
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
-router.post("/createuser", authController.createUser);
+router.post("/createuser", authenticateToken, authorizeRole([1]), authController.createUser);
+
+/**
+ * @swagger
+ * /auth/users/{userId}:
+ *   put:
+ *     summary: Update user information (Admin only)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               staff_fname:
+ *                 type: string
+ *               staff_lname:
+ *                 type: string
+ *               position:
+ *                 type: string
+ *               is_active:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: User not found
+ */
+router.put("/users/:userId", authenticateToken, authorizeRole([1]), authController.updateUser);
 
 module.exports = router;

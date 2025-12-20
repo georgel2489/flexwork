@@ -1,4 +1,4 @@
-const authService = require('../services/authService');
+const authService = require("../services/authService");
 
 exports.login = async (req, res) => {
   try {
@@ -10,58 +10,73 @@ exports.login = async (req, res) => {
   }
 };
 
-// Forget Password Controller
 exports.forgetPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const result = await authService.forgetPassword(email); // Call the forget password service
-    return res.status(200).json({ message: 'Password reset link sent to your email', reset_url: result.reset_url });
+    const result = await authService.forgetPassword(email);
+    return res
+      .status(200)
+      .json({
+        message: "Password reset link sent to your email",
+        reset_url: result.reset_url,
+      });
   } catch (error) {
-    return res.status(404).json({ message: error.message }); // Return error for user not found
+    return res.status(404).json({ message: error.message });
   }
 };
 
-// Reset Password Controller
 exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
-    const result = await authService.resetPassword(token, newPassword); // Call the reset password service
-    return res.status(200).json(result); // Success message: Password reset successfully
+    const result = await authService.resetPassword(token, newPassword);
+    return res.status(200).json(result);
   } catch (error) {
-    return res.status(400).json({ message: error.message }); // Return error for invalid or expired token
+    return res.status(400).json({ message: error.message });
   }
 };
 
-// Change Password Controller
 exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const staffId = req.user.staff_id; // Assuming staffId is coming from the authenticated token
+  const staffId = req.user.staff_id;
 
   try {
-    const result = await authService.changePassword(staffId, currentPassword, newPassword); // Call the change password service
-    return res.status(200).json(result); // Success message: Password changed successfully
+    const result = await authService.changePassword(
+      staffId,
+      currentPassword,
+      newPassword
+    );
+    return res.status(200).json(result);
   } catch (error) {
-    return res.status(400).json({ message: error.message }); // Return error for incorrect current password
+    return res.status(400).json({ message: error.message });
   }
 };
 
-// Get All Users Controller
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await authService.getAllUsers();
-    return res.status(200).json(users);
+    const { page = 1, limit = 10 } = req.query;
+    const result = await authService.getAllUsers(page, limit);
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-// Create User Controller
 exports.createUser = async (req, res) => {
   try {
     const result = await authService.createUser(req.body);
     return res.status(201).json(result);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await authService.updateUser(userId, req.body);
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }

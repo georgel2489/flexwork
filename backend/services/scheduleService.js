@@ -1,11 +1,17 @@
-const { Schedule, Staff, ArrangementRequest, RequestGroup } = require('../models');
+const {
+  Schedule,
+  Staff,
+  ArrangementRequest,
+  RequestGroup,
+  OfficialHoliday,
+} = require("../models");
 const dayjs = require("dayjs");
-const { Op } = require('sequelize');
-const moment = require('moment');
-const staff = require('../models/staff');
+const { Op } = require("sequelize");
+const moment = require("moment");
+const staff = require("../models/staff");
 
 const isWeekend = (date) => {
-  const day = moment(date).day(); // 0 (Sunday) to 6 (Saturday)
+  const day = moment(date).day();
   return day === 0 || day === 6;
 };
 
@@ -14,7 +20,6 @@ exports.createSchedule = async (data) => {
 };
 
 exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
-  // 1. Retrieve the current logged-in staff
   const currstaffQuery = {
     where: {
       staff_id,
@@ -23,9 +28,8 @@ exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
 
   const currStaff = await Staff.findOne(currstaffQuery);
 
-  // 2. Retrieve schedules for current staff within the date range
-  const startDate = dayjs(start_date).startOf('day').toDate();  
-  const endDate = dayjs(end_date).endOf('day').toDate();    
+  const startDate = dayjs(start_date).startOf("day").toDate();
+  const endDate = dayjs(end_date).endOf("day").toDate();
 
   const scheduleQuery = {
     where: {
@@ -36,31 +40,37 @@ exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
 
   const schedules = await Schedule.findAll(scheduleQuery);
 
-  // 3. Check for pending arrangement requests within the date range by joining RequestGroup and filtering by staff_id
   const pendingRequests = await ArrangementRequest.findAll({
     where: {
-      request_status: 'Pending', // Assuming 'pending' is the status for requests awaiting approval
+      request_status: "Pending",
       start_date: { [Op.gte]: startDate, [Op.lte]: endDate },
     },
-    include: [{
-      model: RequestGroup,
-      where: {
-        staff_id, // Filter based on the staff_id from the joined RequestGroup
+    include: [
+      {
+        model: RequestGroup,
+        where: {
+          staff_id,
+        },
       },
-    }],
+    ],
   });
 
-  // Helper function to generate all dates between start_date and end_date
+  const officialHolidays = await OfficialHoliday.findAll({
+    where: {
+      holiday_date: { [Op.gte]: startDate, [Op.lte]: endDate },
+    },
+  });
+
   const generateDateRange = (start, end) => {
     let currentDate = moment(start);
     const endDate = moment(end);
     const dates = [];
 
     while (currentDate <= endDate) {
-      if (!isWeekend(currentDate)) { // Only include non-weekend dates
-        dates.push(currentDate.format('YYYY-MM-DD'));
+      if (!isWeekend(currentDate)) {
+        dates.push(currentDate.format("YYYY-MM-DD"));
       }
-      currentDate = currentDate.add(1, 'days');
+      currentDate = currentDate.add(1, "days");
     }
 
     return dates;
@@ -68,13 +78,11 @@ exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
 
   const allDates = generateDateRange(start_date, end_date);
 
-  // Initialize an empty result object to hold the formatted output
   const result = {};
 
-  // Create a lookup table for schedules by staff and date
   const scheduleLookup = {};
-  schedules.forEach(schedule => {
-    const dateKey = moment(schedule.start_date).format('YYYY-MM-DD');
+  schedules.forEach((schedule) => {
+    const dateKey = moment(schedule.start_date).format("YYYY-MM-DD");
     if (!scheduleLookup[dateKey]) {
       scheduleLookup[dateKey] = {
         session_type: schedule.session_type,
@@ -82,30 +90,36 @@ exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
     }
   });
 
-  // Create a lookup table for pending arrangement requests by date
   const pendingRequestLookup = {};
-  pendingRequests.forEach(request => {
-    const dateKey = moment(request.start_date).format('YYYY-MM-DD');
-    pendingRequestLookup[dateKey] = 'Pending Arrangement Request';
+  pendingRequests.forEach((request) => {
+    const dateKey = moment(request.start_date).format("YYYY-MM-DD");
+    pendingRequestLookup[dateKey] = "Pending Request";
   });
 
-  allDates.forEach(date => {
+  const holidayLookup = {};
+  officialHolidays.forEach((holiday) => {
+    const dateKey = moment(holiday.holiday_date).format("YYYY-MM-DD");
+    holidayLookup[dateKey] = "Official holiday";
+  });
+
+  allDates.forEach((date) => {
     if (!result[date]) {
-      result[date] = ""; // Ensure date key exists
+      result[date] = "";
     }
 
-    if (pendingRequestLookup[date]) {
-      result[date] = pendingRequestLookup[date]; // Mark as pending request
+    if (holidayLookup[date]) {
+      result[date] = holidayLookup[date];
+    } else if (pendingRequestLookup[date]) {
+      result[date] = pendingRequestLookup[date];
     } else if (scheduleLookup[date]) {
       const scheduleForDate = scheduleLookup[date];
 
-      // Push to either "Work from home" or "In office" based on session_type
-      if (scheduleForDate.session_type === "Work from home") {
-        result[date] = "Work from home";
-      } else if (scheduleForDate.session_type === "Work from home (AM)") {
-        result[date] = "Work from home (AM)";
-      } else if (scheduleForDate.session_type === "Work from home (PM)") {
-        result[date] = "Work from home (PM)";
+      if (scheduleForDate.session_type === "Work home") {
+        result[date] = "Work home";
+      } else if (scheduleForDate.session_type === "Day off") {
+        result[date] = "Day off";
+      } else if (scheduleForDate.session_type === "Vacation") {
+        result[date] = "Vacation";
       } else {
         result[date] = "In office";
       }
@@ -120,11 +134,7 @@ exports.getSchedulePersonal = async ({ staff_id, start_date, end_date }) => {
   };
 };
 
-
-
-
 exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
-  // 0. Retrieve the current logged-in staff
   const currstaffQuery = {
     where: {
       staff_id,
@@ -135,7 +145,6 @@ exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
   const position = currStaff.position;
   const department = currStaff.dept;
 
-  // 1. Retrieve all staff members with the same position
   const staffQuery = {
     where: {
       dept: department,
@@ -144,11 +153,9 @@ exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
   };
 
   const allStaff = await Staff.findAll(staffQuery);
-  
 
-  // 2. Retrieve schedules for staff in the department within the date range
-  const startDate = dayjs(start_date).startOf('day').toDate();  
-  const endDate = dayjs(end_date).endOf('day').toDate();    
+  const startDate = dayjs(start_date).startOf("day").toDate();
+  const endDate = dayjs(end_date).endOf("day").toDate();
   const scheduleQuery = {
     where: {
       start_date: { [Op.gte]: startDate, [Op.lte]: endDate },
@@ -166,41 +173,42 @@ exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
 
   const schedules = await Schedule.findAll(scheduleQuery);
 
-  // Helper function to generate all dates between start_date and end_date
+  const officialHolidays = await OfficialHoliday.findAll({
+    where: {
+      holiday_date: { [Op.gte]: startDate, [Op.lte]: endDate },
+    },
+  });
+
   const generateDateRange = (start, end) => {
     let currentDate = moment(start);
     const endDate = moment(end);
     const dates = [];
 
     while (currentDate <= endDate) {
-      if (!isWeekend(currentDate)) { // Only include non-weekend dates
-        dates.push(currentDate.format('YYYY-MM-DD'));
+      if (!isWeekend(currentDate)) {
+        dates.push(currentDate.format("YYYY-MM-DD"));
       }
-      currentDate = currentDate.add(1, 'days');
+      currentDate = currentDate.add(1, "days");
     }
 
     return dates;
   };
 
-  // Get all dates between start_date and end_date
   const allDates = generateDateRange(start_date, end_date);
 
-  // Initialize an empty result object to hold the formatted output
   const result = {};
 
-  // Initialize the structure with all dates, department, and position fields
-  allDates.forEach(date => {
+  allDates.forEach((date) => {
     result[date] = {};
   });
 
-  // Create a lookup table for schedules by staff and date
   const scheduleLookup = {};
 
   const positionKey = position;
   const departmentKey = department;
 
-  schedules.forEach(schedule => {
-    const dateKey = moment(schedule.start_date).format('YYYY-MM-DD');
+  schedules.forEach((schedule) => {
+    const dateKey = moment(schedule.start_date).format("YYYY-MM-DD");
     const staffId = schedule.staff_id;
     const name = `${schedule.Staff.staff_fname} ${schedule.Staff.staff_lname}`;
 
@@ -218,43 +226,56 @@ exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
     }
   });
 
-  // 3. Populate result based on the schedule or default as "In office"
-  allStaff.forEach(staff => {
+  const holidayLookup = {};
+  officialHolidays.forEach((holiday) => {
+    const dateKey = moment(holiday.holiday_date).format("YYYY-MM-DD");
+    holidayLookup[dateKey] = true;
+  });
+
+  allStaff.forEach((staff) => {
     const staffName = `${staff.staff_fname} ${staff.staff_lname}`;
     const positionKey = staff.position;
     const departmentKey = staff.dept;
 
-    allDates.forEach(date => {
-  
+    allDates.forEach((date) => {
       if (!result[date][departmentKey]) {
-        result[date][departmentKey] = {}; // Ensure department key exists
+        result[date][departmentKey] = {};
       }
-  
+
       if (!result[date][departmentKey][positionKey]) {
         result[date][departmentKey][positionKey] = {
           "In office": [],
-          "Work from home": [],
-          "Work from home (AM)": [],
-          "Work from home (PM)": [],
-        }; 
+          "Work home": [],
+          "Day off": [],
+          Vacation: [],
+          "Official holiday": [],
+        };
       }
 
-      // Check if staff has a schedule for this date
-      if (scheduleLookup[staff.staff_id] && scheduleLookup[staff.staff_id][date]) {
+      if (holidayLookup[date]) {
+        result[date][departmentKey][positionKey]["Official holiday"].push(
+          staffName
+        );
+      } else if (
+        scheduleLookup[staff.staff_id] &&
+        scheduleLookup[staff.staff_id][date]
+      ) {
         const scheduleForDate = scheduleLookup[staff.staff_id][date];
 
-        // Push to either "Work from home" or "In office" based on session_type
-        if (scheduleForDate.session_type === "Work from home") {
-          result[date][departmentKey][positionKey]["Work from home"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (AM)") {
-          result[date][departmentKey][positionKey]["Work from home (AM)"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (PM)") {
-          result[date][departmentKey][positionKey]["Work from home (PM)"].push(staffName);
-        }else {
+        if (scheduleForDate.session_type === "Work home") {
+          result[date][departmentKey][positionKey]["Work home"].push(staffName);
+        } else if (scheduleForDate.session_type === "Day off") {
+          result[date][departmentKey][positionKey]["Day off"].push(staffName);
+        } else if (scheduleForDate.session_type === "Vacation") {
+          result[date][departmentKey][positionKey]["Vacation"].push(staffName);
+        } else if (scheduleForDate.session_type === "Official holiday") {
+          result[date][departmentKey][positionKey]["Official holiday"].push(
+            staffName
+          );
+        } else {
           result[date][departmentKey][positionKey]["In office"].push(staffName);
         }
       } else {
-        // If no schedule, default to "In office"
         result[date][departmentKey][positionKey]["In office"].push(staffName);
       }
     });
@@ -262,8 +283,11 @@ exports.getScheduleByTeam = async ({ staff_id, start_date, end_date }) => {
   return result;
 };
 
-exports.getScheduleByDepartment = async ({ staff_id, start_date, end_date }) => {
-  // 0. Retrieve the current logged-in staff
+exports.getScheduleByDepartment = async ({
+  staff_id,
+  start_date,
+  end_date,
+}) => {
   const currstaffQuery = {
     where: {
       staff_id,
@@ -273,22 +297,20 @@ exports.getScheduleByDepartment = async ({ staff_id, start_date, end_date }) => 
   const currStaff = await Staff.findOne(currstaffQuery);
   const position = currStaff.position;
   const departmentname = currStaff.dept;
-  
-  // 1. Retrieve all staff members from the department (filtered by position if provided)
+
   const staffQuery = {
     where: {
-      dept: departmentname, // Filter by department name if provided
+      dept: departmentname,
       position: {
-        [Op.ne]: "Director", // Exclude position "Director"
+        [Op.ne]: "Director",
       },
     },
   };
 
   const allStaff = await Staff.findAll(staffQuery);
-  
-  // 2. Retrieve schedules for staff in the department within the date range
-  const startDate = dayjs(start_date).startOf('day').toDate();  
-  const endDate = dayjs(end_date).endOf('day').toDate();    
+
+  const startDate = dayjs(start_date).startOf("day").toDate();
+  const endDate = dayjs(end_date).endOf("day").toDate();
   const scheduleQuery = {
     where: {
       start_date: { [Op.gte]: startDate, [Op.lte]: endDate },
@@ -305,38 +327,39 @@ exports.getScheduleByDepartment = async ({ staff_id, start_date, end_date }) => 
 
   const schedules = await Schedule.findAll(scheduleQuery);
 
-  // Helper function to generate all dates between start_date and end_date
+  const officialHolidays = await OfficialHoliday.findAll({
+    where: {
+      holiday_date: { [Op.gte]: startDate, [Op.lte]: endDate },
+    },
+  });
+
   const generateDateRange = (start, end) => {
     let currentDate = moment(start);
     const endDate = moment(end);
     const dates = [];
 
     while (currentDate <= endDate) {
-      if (!isWeekend(currentDate)) { // Only include non-weekend dates
-        dates.push(currentDate.format('YYYY-MM-DD'));
+      if (!isWeekend(currentDate)) {
+        dates.push(currentDate.format("YYYY-MM-DD"));
       }
-      currentDate = currentDate.add(1, 'days');
+      currentDate = currentDate.add(1, "days");
     }
 
     return dates;
   };
 
-  // Get all dates between start_date and end_date
   const allDates = generateDateRange(start_date, end_date);
 
-  // Initialize an empty result object to hold the formatted output
   const result = {};
 
-  // Initialize the structure with all dates, department, and position fields
-  allDates.forEach(date => {
+  allDates.forEach((date) => {
     result[date] = {};
   });
 
-  // Create a lookup table for schedules by staff and date
   const scheduleLookup = {};
 
-  schedules.forEach(schedule => {
-    const dateKey = moment(schedule.start_date).format('YYYY-MM-DD');
+  schedules.forEach((schedule) => {
+    const dateKey = moment(schedule.start_date).format("YYYY-MM-DD");
     const staffId = schedule.staff_id;
     const positionKey = schedule.Staff.position;
     const departmentKey = schedule.Staff.dept;
@@ -356,43 +379,56 @@ exports.getScheduleByDepartment = async ({ staff_id, start_date, end_date }) => 
     }
   });
 
-  // 3. Populate result based on the schedule or default as "In office"
-  allStaff.forEach(staff => {
+  const holidayLookup = {};
+  officialHolidays.forEach((holiday) => {
+    const dateKey = moment(holiday.holiday_date).format("YYYY-MM-DD");
+    holidayLookup[dateKey] = true;
+  });
+
+  allStaff.forEach((staff) => {
     const staffName = `${staff.staff_fname} ${staff.staff_lname}`;
     const positionKey = staff.position;
     const departmentKey = staff.dept;
 
-    allDates.forEach(date => {
-  
+    allDates.forEach((date) => {
       if (!result[date][departmentKey]) {
-        result[date][departmentKey] = {}; // Ensure department key exists
+        result[date][departmentKey] = {};
       }
-  
+
       if (!result[date][departmentKey][positionKey]) {
         result[date][departmentKey][positionKey] = {
           "In office": [],
-          "Work from home": [],
-          "Work from home (AM)": [],
-          "Work from home (PM)": [],
-        }; 
+          "Work home": [],
+          "Day off": [],
+          Vacation: [],
+          "Official holiday": [],
+        };
       }
 
-      // Check if staff has a schedule for this date
-      if (scheduleLookup[staff.staff_id] && scheduleLookup[staff.staff_id][date]) {
+      if (holidayLookup[date]) {
+        result[date][departmentKey][positionKey]["Official holiday"].push(
+          staffName
+        );
+      } else if (
+        scheduleLookup[staff.staff_id] &&
+        scheduleLookup[staff.staff_id][date]
+      ) {
         const scheduleForDate = scheduleLookup[staff.staff_id][date];
 
-        // Push to either "Work from home" or "In office" based on session_type
-        if (scheduleForDate.session_type === "Work from home") {
-          result[date][departmentKey][positionKey]["Work from home"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (AM)") {
-          result[date][departmentKey][positionKey]["Work from home (AM)"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (PM)") {
-          result[date][departmentKey][positionKey]["Work from home (PM)"].push(staffName);
-        }else {
+        if (scheduleForDate.session_type === "Work home") {
+          result[date][departmentKey][positionKey]["Work home"].push(staffName);
+        } else if (scheduleForDate.session_type === "Day off") {
+          result[date][departmentKey][positionKey]["Day off"].push(staffName);
+        } else if (scheduleForDate.session_type === "Vacation") {
+          result[date][departmentKey][positionKey]["Vacation"].push(staffName);
+        } else if (scheduleForDate.session_type === "Official holiday") {
+          result[date][departmentKey][positionKey]["Official holiday"].push(
+            staffName
+          );
+        } else {
           result[date][departmentKey][positionKey]["In office"].push(staffName);
         }
       } else {
-        // If no schedule, default to "In office"
         result[date][departmentKey][positionKey]["In office"].push(staffName);
       }
     });
@@ -400,21 +436,23 @@ exports.getScheduleByDepartment = async ({ staff_id, start_date, end_date }) => 
   return result;
 };
 
-exports.getScheduleGlobal = async ({ departmentname, position, start_date, end_date }) => {
-  // 1. Retrieve all staff members from the department (filtered by position if provided)
+exports.getScheduleGlobal = async ({
+  departmentname,
+  position,
+  start_date,
+  end_date,
+}) => {
   const staffQuery = {
     where: {
       ...(departmentname && { dept: departmentname }),
-      ...(position && { position }), // Add position filter if provided
+      ...(position && { position }),
     },
   };
 
   const allStaff = await Staff.findAll(staffQuery);
-  
 
-  // 2. Retrieve schedules for staff in the department within the date range
-  const startDate = dayjs(start_date).startOf('day').toDate();  
-  const endDate = dayjs(end_date).endOf('day').toDate();    
+  const startDate = dayjs(start_date).startOf("day").toDate();
+  const endDate = dayjs(end_date).endOf("day").toDate();
   const scheduleQuery = {
     where: {
       start_date: { [Op.gte]: startDate, [Op.lte]: endDate },
@@ -432,38 +470,39 @@ exports.getScheduleGlobal = async ({ departmentname, position, start_date, end_d
 
   const schedules = await Schedule.findAll(scheduleQuery);
 
-  // Helper function to generate all dates between start_date and end_date
+  const officialHolidays = await OfficialHoliday.findAll({
+    where: {
+      holiday_date: { [Op.gte]: startDate, [Op.lte]: endDate },
+    },
+  });
+
   const generateDateRange = (start, end) => {
     let currentDate = moment(start);
     const endDate = moment(end);
     const dates = [];
 
     while (currentDate <= endDate) {
-      if (!isWeekend(currentDate)) { // Only include non-weekend dates
-        dates.push(currentDate.format('YYYY-MM-DD'));
+      if (!isWeekend(currentDate)) {
+        dates.push(currentDate.format("YYYY-MM-DD"));
       }
-      currentDate = currentDate.add(1, 'days');
+      currentDate = currentDate.add(1, "days");
     }
 
     return dates;
   };
 
-  // Get all dates between start_date and end_date
   const allDates = generateDateRange(start_date, end_date);
 
-  // Initialize an empty result object to hold the formatted output
   const result = {};
 
-  // Initialize the structure with all dates, department, and position fields
-  allDates.forEach(date => {
+  allDates.forEach((date) => {
     result[date] = {};
   });
 
-  // Create a lookup table for schedules by staff and date
   const scheduleLookup = {};
 
-  schedules.forEach(schedule => {
-    const dateKey = moment(schedule.start_date).format('YYYY-MM-DD');
+  schedules.forEach((schedule) => {
+    const dateKey = moment(schedule.start_date).format("YYYY-MM-DD");
     const staffId = schedule.staff_id;
     const positionKey = schedule.Staff.position;
     const departmentKey = schedule.Staff.dept;
@@ -483,43 +522,56 @@ exports.getScheduleGlobal = async ({ departmentname, position, start_date, end_d
     }
   });
 
-  // 3. Populate result based on the schedule or default as "In office"
-  allStaff.forEach(staff => {
+  const holidayLookup = {};
+  officialHolidays.forEach((holiday) => {
+    const dateKey = moment(holiday.holiday_date).format("YYYY-MM-DD");
+    holidayLookup[dateKey] = true;
+  });
+
+  allStaff.forEach((staff) => {
     const staffName = `${staff.staff_fname} ${staff.staff_lname}`;
     const positionKey = staff.position;
     const departmentKey = staff.dept;
 
-    allDates.forEach(date => {
-  
+    allDates.forEach((date) => {
       if (!result[date][departmentKey]) {
-        result[date][departmentKey] = {}; // Ensure department key exists
+        result[date][departmentKey] = {};
       }
-  
+
       if (!result[date][departmentKey][positionKey]) {
         result[date][departmentKey][positionKey] = {
           "In office": [],
-          "Work from home": [],
-          "Work from home (AM)": [],
-          "Work from home (PM)": [],
-        }; 
+          "Work home": [],
+          "Day off": [],
+          Vacation: [],
+          "Official holiday": [],
+        };
       }
 
-      // Check if staff has a schedule for this date
-      if (scheduleLookup[staff.staff_id] && scheduleLookup[staff.staff_id][date]) {
+      if (holidayLookup[date]) {
+        result[date][departmentKey][positionKey]["Official holiday"].push(
+          staffName
+        );
+      } else if (
+        scheduleLookup[staff.staff_id] &&
+        scheduleLookup[staff.staff_id][date]
+      ) {
         const scheduleForDate = scheduleLookup[staff.staff_id][date];
 
-        // Push to either "Work from home" or "In office" based on session_type
-        if (scheduleForDate.session_type === "Work from home") {
-          result[date][departmentKey][positionKey]["Work from home"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (AM)") {
-          result[date][departmentKey][positionKey]["Work from home (AM)"].push(staffName);
-        }else if (scheduleForDate.session_type === "Work from home (PM)") {
-          result[date][departmentKey][positionKey]["Work from home (PM)"].push(staffName);
-        }else {
+        if (scheduleForDate.session_type === "Work home") {
+          result[date][departmentKey][positionKey]["Work home"].push(staffName);
+        } else if (scheduleForDate.session_type === "Day off") {
+          result[date][departmentKey][positionKey]["Day off"].push(staffName);
+        } else if (scheduleForDate.session_type === "Vacation") {
+          result[date][departmentKey][positionKey]["Vacation"].push(staffName);
+        } else if (scheduleForDate.session_type === "Official holiday") {
+          result[date][departmentKey][positionKey]["Official holiday"].push(
+            staffName
+          );
+        } else {
           result[date][departmentKey][positionKey]["In office"].push(staffName);
         }
       } else {
-        // If no schedule, default to "In office"
         result[date][departmentKey][positionKey]["In office"].push(staffName);
       }
     });
