@@ -1,0 +1,151 @@
+import * as React from 'react';
+import { AppProvider } from '@toolpad/core/nextjs';
+import Chip from '@mui/material/Chip';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
+import BusinessIcon from '@mui/icons-material/Business';
+import LanguageIcon from '@mui/icons-material/Language';
+import AddIcon from '@mui/icons-material/Add';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
+import LockResetIcon from '@mui/icons-material/LockReset';
+// import NotificationsIcon from '@mui/icons-material/Notifications';
+import PeopleIcon from '@mui/icons-material/People';
+import { SessionProvider, signIn, signOut } from 'next-auth/react';
+import { auth } from '../auth';
+import theme from '../theme';
+
+const NAVIGATION = [
+  {
+    segment: '',
+    title: 'Dashboard',
+    icon: <DashboardIcon />,
+  },
+  // {
+  //   segment: 'notifications',
+  //   title: 'Notifications',
+  //   icon: <NotificationsIcon />,
+  // },
+  // {
+  //   kind: 'divider',
+  // },
+  {
+    kind: 'header',
+    title: 'Schedules',
+  },
+  {
+    segment: 'schedule/view-own-schedule',
+    title: 'My Schedule',
+    icon: <PersonIcon />,
+  },
+  {
+    segment: 'schedule/view-team-schedule',
+    title: "Team's Schedule",
+    icon: <GroupIcon />,
+    roles: [2, 3],
+  },
+  {
+    segment: 'schedule/view-organization-schedule',
+    title: "View Organization's Schedule",
+    icon: <LanguageIcon />,
+    roles: [1],
+  },
+  {
+    kind: 'divider',
+  },
+  {
+    kind: 'header',
+    title: 'Arrangement Requests',
+  },
+  {
+    segment: 'arrangement/view-my-request',
+    title: 'View My Request',
+    icon: <CalendarTodayIcon />,
+  },
+  {
+    kind: 'divider',
+    roles: [1, 3]
+  },
+  {
+    kind: 'header',
+    title: 'Approve Requests',
+    roles: [1, 3]
+  },
+  {
+    segment: 'arrangement/approve-arrangements',
+    title: 'Arrangements',
+    icon: <AssignmentIcon />,
+    roles: [1, 3],
+  },
+  {
+    kind: 'divider',
+    roles: [1]
+  },
+  {
+    kind: 'header',
+    title: 'User Management',
+    roles: [1]
+  },
+  {
+    segment: 'users',
+    title: 'Users',
+    icon: <PeopleIcon />,
+    roles: [1],
+  },
+  {
+    kind: 'divider',
+  },
+  {
+    kind: 'header',
+    title: 'Account Setting',
+  },
+  {
+    segment: 'account/change-password',
+    title: 'Reset Password',
+    icon: <LockResetIcon />,
+  },
+];
+
+const BRANDING = {
+  title: 'All-in-One',
+};
+
+
+const AUTHENTICATION = {
+  signIn,
+  signOut,
+};
+
+
+export default async function RootLayout(props) {
+  const session = await auth();
+  const userRoles = session?.user?.roles; // Assuming roles are stored in session
+
+  // Filter navigation based on user roles
+  const accessibleNavigation = NAVIGATION.filter(item =>
+    !item.roles || item.roles.includes(userRoles)
+  );
+
+  return (
+    <html lang="en" data-toolpad-color-scheme="light" suppressHydrationWarning>
+      <body>
+        <SessionProvider session={session}>
+          <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+            <AppProvider
+              navigation={accessibleNavigation}
+              branding={BRANDING}
+              session={session}
+              authentication={AUTHENTICATION}
+              theme={theme}
+            >
+              {props.children}
+            </AppProvider>
+          </AppRouterCacheProvider>
+        </SessionProvider>
+      </body>
+    </html>
+  );
+}
