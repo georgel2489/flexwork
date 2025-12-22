@@ -76,6 +76,7 @@ describe("Notification Service", () => {
 
   describe("createNotification", () => {
     it("should create a notification for a given staff ID", async () => {
+      db.Staff.findByPk.mockResolvedValue({ staff_id: 1, staff_fname: "John" });
       db.Notification.create.mockResolvedValue({
         id: 1,
         message: "New request",
@@ -86,6 +87,7 @@ describe("Notification Service", () => {
         "New request",
         "Request Type"
       );
+      expect(db.Staff.findByPk).toHaveBeenCalledWith(1);
       expect(db.Notification.create).toHaveBeenCalledWith({
         staff_id: 1,
         message: "New request",
@@ -95,6 +97,7 @@ describe("Notification Service", () => {
     });
 
     it("should throw an error if creating a notification fails", async () => {
+      db.Staff.findByPk.mockResolvedValue({ staff_id: 1, staff_fname: "John" });
       db.Notification.create.mockRejectedValue(new Error("Creation error"));
 
       await expect(

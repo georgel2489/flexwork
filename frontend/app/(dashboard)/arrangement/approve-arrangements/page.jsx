@@ -67,7 +67,7 @@ const RequestGroupsPage = () => {
       );
 
       if (!response.ok) {
-        console.error("Fetch error:", response);
+
         throw new Error("Network response was not ok");
       }
 
@@ -148,7 +148,7 @@ const RequestGroupsPage = () => {
         [groupId]: "approved",
       }));
     } catch (err) {
-      console.error(err.message);
+
       setError(err.message);
     }
   };
@@ -190,7 +190,7 @@ const RequestGroupsPage = () => {
 
       handleRejectClose();
     } catch (err) {
-      console.error(err.message);
+
       setError(err.message);
     }
   };
@@ -216,7 +216,7 @@ const RequestGroupsPage = () => {
         [groupId]: null,
       }));
     } catch (err) {
-      console.error(err.message);
+
       setError(err.message);
     }
   };
@@ -283,7 +283,7 @@ const RequestGroupsPage = () => {
 
       alert("Selected requests approved successfully.");
     } catch (err) {
-      console.error(err);
+
       alert(`Error: ${err.message}`);
     }
   };

@@ -63,7 +63,6 @@ const SchedulePage = () => {
         );
         setSchedules(response.data);
       } catch (error) {
-        console.error("Error fetching schedule:", error);
       } finally {
         setLoading(false);
       }

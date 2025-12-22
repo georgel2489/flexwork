@@ -150,7 +150,6 @@ const ApplyArrangementPage = () => {
 
       setTimeout(() => router.push("/arrangement/my-requests"), 1500);
     } catch (error) {
-      console.error("Error applying:", error);
       showError("There was an error processing your request. Please try again.");
     }
   };
@@ -222,7 +221,6 @@ const ApplyArrangementPage = () => {
       setRepeatType("weekly");
       setStartDate(calculateTwoWorkingDays());
     } catch (error) {
-      console.error("Error applying batch request:", error);
       showError(
         "There was an error processing your batch request. Please try again."
       );

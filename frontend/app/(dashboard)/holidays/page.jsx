@@ -43,7 +43,6 @@ export default function OfficialHolidaysPage() {
   });
 
   useEffect(() => {
-    console.log(session, 'session')
     if (session?.user?.token) {
       fetchHolidays();
     }
@@ -51,7 +50,6 @@ export default function OfficialHolidaysPage() {
 
   const fetchHolidays = async () => {
     if (!session?.user?.token) {
-      console.log("No access token available");
       setLoading(false);
       return;
     }
@@ -68,7 +66,6 @@ export default function OfficialHolidaysPage() {
       );
       setHolidays(response.data);
     } catch (error) {
-      console.error("Error fetching holidays:", error);
       showSnackbar("Failed to fetch holidays", "error");
     } finally {
       setLoading(false);
@@ -148,7 +145,6 @@ export default function OfficialHolidaysPage() {
       handleCloseDialog();
       fetchHolidays();
     } catch (error) {
-      console.error("Error saving holiday:", error);
       showSnackbar(
         error.response?.data?.error || "Failed to save holiday",
         "error"
@@ -178,7 +174,6 @@ export default function OfficialHolidaysPage() {
       showSnackbar("Holiday deleted successfully", "success");
       fetchHolidays();
     } catch (error) {
-      console.error("Error deleting holiday:", error);
       showSnackbar("Failed to delete holiday", "error");
     }
   };

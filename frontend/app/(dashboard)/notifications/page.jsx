@@ -46,7 +46,6 @@ export default function NotificationCenter() {
 
         setNotifications(notificationResponse.data);
       } catch (error) {
-        console.error("Error fetching notifications:", error);
       }
     };
 
@@ -70,7 +69,6 @@ export default function NotificationCenter() {
       }));
       setNotifications(updatedNotifications);
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
     }
   };
 
@@ -92,7 +90,6 @@ export default function NotificationCenter() {
       );
       setNotifications(updatedNotifications);
     } catch (error) {
-      console.error("Error marking notification as read:", error);
     }
   };
 

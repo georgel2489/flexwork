@@ -78,7 +78,6 @@ export default function ResponsiveCalendar() {
 
       setSchedules(response.data.schedules);
     } catch (error) {
-      console.error("Error fetching schedule:", error);
     }
   };
 

@@ -33,7 +33,6 @@ const providers = [
 
         return null;
       } catch (error) {
-        console.error("Error during login:", error);
         return null;
       }
     },

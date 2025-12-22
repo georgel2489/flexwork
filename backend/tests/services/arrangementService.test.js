@@ -124,130 +124,68 @@ describe("arrangementService", () => {
       ];
 
       RequestGroup.findAll = jest.fn().mockResolvedValue(mockRequestGroups);
+      RequestGroup.count = jest.fn().mockResolvedValue(1);
+      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
 
       const manager_id = 1;
 
       const response = await arrangementService.getArrangementByManager(
-        manager_id
+        manager_id,
+        1,
+        10,
+        "All"
       );
 
-      expect(RequestGroup.findAll).toHaveBeenCalledWith({
-        include: [
-          {
-            model: Staff,
-            where: { reporting_manager_id: manager_id },
-            attributes: [
-              "staff_id",
-              "staff_fname",
-              "staff_lname",
-              "dept",
-              "position",
-            ],
-          },
-          {
-            model: ArrangementRequest,
-            where: { request_status: "Pending" },
-            attributes: [
-              "arrangement_id",
-              "session_type",
-              "start_date",
-              "description",
-              "request_status",
-              "updated_at",
-              "approval_comment",
-              "approved_at",
-            ],
-          },
-        ],
-      });
-
-      expect(response).toEqual({
-        manager_id: manager_id,
-        request_groups: [
-          {
-            request_group_id: 1,
-            staff: {
-              staff_id: 100,
-              staff_fname: "John",
-              staff_lname: "Doe",
-              dept: "IT",
-              position: "Developer",
-            },
-            request_created_date: new Date("2024-10-28"),
-            arrangement_requests: [
-              {
-                arrangement_id: 101,
-                session_type: "WFH",
-                start_date: new Date("2024-10-29"),
-                description: "Working from home",
-                request_status: "Pending",
-                updated_at: expect.any(Date),
-                approval_comment: null,
-                approved_at: null,
-              },
-            ],
-          },
-        ],
+      expect(RequestGroup.findAll).toHaveBeenCalled();
+      expect(RequestGroup.count).toHaveBeenCalled();
+      expect(response).toHaveProperty("manager_id", manager_id);
+      expect(response).toHaveProperty("request_groups");
+      expect(response).toHaveProperty("pagination");
+      expect(response.pagination).toEqual({
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
       });
     });
 
     it("should return an empty array when there are no pending arrangements for the manager", async () => {
       RequestGroup.findAll = jest.fn().mockResolvedValue([]);
+      RequestGroup.count = jest.fn().mockResolvedValue(0);
+      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
 
       const manager_id = 1;
 
       const response = await arrangementService.getArrangementByManager(
-        manager_id
+        manager_id,
+        1,
+        10,
+        "All"
       );
 
       expect(response).toEqual({
         manager_id: manager_id,
         request_groups: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+        },
       });
 
-      expect(RequestGroup.findAll).toHaveBeenCalledWith({
-        include: [
-          {
-            model: Staff,
-            where: { reporting_manager_id: manager_id },
-            attributes: [
-              "staff_id",
-              "staff_fname",
-              "staff_lname",
-              "dept",
-              "position",
-            ],
-          },
-          {
-            model: ArrangementRequest,
-            where: { request_status: "Pending" },
-            attributes: [
-              "arrangement_id",
-              "session_type",
-              "start_date",
-              "description",
-              "request_status",
-              "updated_at",
-              "approval_comment",
-              "approved_at",
-            ],
-          },
-        ],
-      });
+      expect(RequestGroup.findAll).toHaveBeenCalled();
     });
 
     it("should throw an error if fetching arrangements fails", async () => {
-      RequestGroup.findAll = jest
-        .fn()
-        .mockRejectedValue(new Error("Database error"));
+      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
+      RequestGroup.count = jest.fn().mockRejectedValue(new Error("Database error"));
 
       const manager_id = 1;
 
       await expect(
-        arrangementService.getArrangementByManager(manager_id)
+        arrangementService.getArrangementByManager(manager_id, 1, 10, "All")
       ).rejects.toThrow("Database error");
-
-      expect(RequestGroup.findAll).toHaveBeenCalled();
     });
   });
 

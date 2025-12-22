@@ -49,7 +49,6 @@ exports.getArrangementbyManager = async (req, res) => {
     );
     res.status(200).json(arrangements);
   } catch (error) {
-    console.error("Error fetching arrangement requests by manager:", error);
     res.status(500).json({ error: "Could not fetch arrangement requests" });
   }
 };
@@ -66,7 +65,6 @@ exports.approveRequest = async (req, res) => {
     );
     return res.status(200).json({ message: "Request approved", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -84,7 +82,6 @@ exports.approvePartialRequest = async (req, res) => {
     );
     return res.status(200).json({ message: "Request approved", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -101,7 +98,6 @@ exports.rejectRequest = async (req, res) => {
     );
     return res.status(200).json({ message: "Request rejected", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -114,7 +110,6 @@ exports.undo = async (req, res) => {
     const result = await arrangementService.undo(id, comment, manager_id);
     return res.status(200).json({ message: "Undo successful", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -131,7 +126,6 @@ exports.revokeRequest = async (req, res) => {
     );
     return res.status(200).json({ message: "Request revoked", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -144,7 +138,6 @@ exports.getApprovedRequests = async (req, res) => {
     );
     res.status(200).json(arrangements);
   } catch (error) {
-    console.error("Error fetching arrangement requests by manager:", error);
     res.status(500).json({ error: "Could not fetch arrangement requests" });
   }
 };
@@ -161,7 +154,6 @@ exports.getArrangementbyStaff = async (req, res) => {
     );
     res.status(200).json(arrangements);
   } catch (error) {
-    console.error("Error fetching arrangement requests by staff:", error);
     res.status(500).json({ error: "Could not fetch arrangement requests" });
   }
 };
@@ -179,7 +171,6 @@ exports.withdrawRequest = async (req, res) => {
     );
     return res.status(200).json({ message: "Request withdrawn", data: result });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 };

@@ -20,9 +20,7 @@ async function scheduleNotification(
   const timer = setTimeout(async () => {
     try {
       await notificationService.createNotification(staff_id, message, title);
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
+    } catch (error) {}
 
     delete pendingNotifications[request_group_id];
   }, DELAY);
@@ -95,7 +93,7 @@ exports.createArrangement = async (arrangementData) => {
     return newArrangement;
   } catch (error) {
     await transaction.rollback();
-    console.error("Error creating arrangement request:", error);
+
     throw new Error(error.message || "Could not create arrangement request");
   }
 };
@@ -208,7 +206,7 @@ exports.createBatchArrangement = async (batchData) => {
     };
   } catch (error) {
     await transaction.rollback();
-    console.error("Error creating batch arrangement request:", error);
+
     throw new Error(
       error.message || "Could not create batch arrangement request"
     );
@@ -220,7 +218,6 @@ exports.getAllArrangements = async () => {
     const arrangements = await db.ArrangementRequest.findAll();
     return arrangements;
   } catch (error) {
-    console.error("Error fetching all arrangement requests:", error);
     throw new Error("Could not fetch arrangement requests");
   }
 };
@@ -334,7 +331,6 @@ exports.getArrangementByManager = async (
 };
 
 exports.approvePartialRequest = async (id, comment, data, manager_id) => {
-  console.log(data);
   const transaction = await sequelize.transaction();
   try {
     const requestGroup = await db.RequestGroup.findByPk(id, { transaction });

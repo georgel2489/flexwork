@@ -60,7 +60,6 @@ export default function HomePage() {
           waitingApproval: approvalRes?.data?.request_groups?.length || 0,
         });
       } catch (error) {
-        console.error("Error fetching stats:", error);
       }
     };
 

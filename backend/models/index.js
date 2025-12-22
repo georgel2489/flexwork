@@ -37,8 +37,6 @@ db.Notification.belongsTo(db.Staff, { foreignKey: "staff_id" });
 db.sequelize
   .sync({ force: false })
   .then(() => {})
-  .catch((err) => {
-    console.error("Error syncing models:", err);
-  });
+  .catch((err) => {});
 
 module.exports = db;

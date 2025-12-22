@@ -1,8 +1,18 @@
 # Backend Dockerfile
 FROM node:18
 WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install
+
+# Enable Corepack for Yarn
+RUN corepack enable
+
+# Copy package files
+COPY package.json yarn.lock* ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy application code
 COPY . .
+
 EXPOSE 3001
-CMD ["npm", "start"]
+CMD ["yarn", "start"]

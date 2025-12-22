@@ -44,7 +44,6 @@ const RevokeRequestsPage = () => {
       setRequestGroups(data.request_groups || []);
       setDataLoading(false);
     } catch (error) {
-      console.error("Error fetching approved requests:", error);
       setError("Failed to load approved requests");
       setDataLoading(false);
     }
@@ -106,7 +105,6 @@ const RevokeRequestsPage = () => {
 
       setOpenSuccessDialog(true);
     } catch (error) {
-      console.error("Error revoking request:", error);
       setError(error.message || "Failed to revoke the request.");
     } finally {
       setLoading(false);

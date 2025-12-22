@@ -76,18 +76,18 @@ const RequestGroupsPage = () => {
       }
 
       const data = await response.json();
-      
+
       if (append) {
         setRequestGroups(prev => [...prev, ...(data.request_groups || [])]);
       } else {
         setRequestGroups(data.request_groups || []);
       }
-      
+
       setTotalCount(data.pagination?.total || 0);
       setHasMore(pageNum < (data.pagination?.totalPages || 0));
       setError(null);
     } catch (err) {
-      console.error("Fetch error:", err);
+      
       setError(err.message);
     } finally {
       setLoading(false);
@@ -157,7 +157,6 @@ const RequestGroupsPage = () => {
       updateGroupStatus(selectedGroupId, "Withdrawn");
       closeWithdrawDialog();
     } catch (err) {
-      console.error(err.message);
       setError(err.message);
       closeWithdrawDialog();
     }
@@ -250,13 +249,13 @@ const RequestGroupsPage = () => {
           </Card>
         ))}
       </Stack>
-      
+
       {loading && page > 1 && (
         <Box display="flex" justifyContent="center" mt={3}>
           <Typography>Loading more...</Typography>
         </Box>
       )}
-      
+
       {!hasMore && requestGroups.length > 0 && (
         <Box display="flex" justifyContent="center" mt={3}>
           <Typography color="textSecondary">No more requests to load</Typography>

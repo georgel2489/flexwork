@@ -19,7 +19,6 @@ exports.createHoliday = async (holidayData) => {
 
     return newHoliday;
   } catch (error) {
-    console.error("Error creating official holiday:", error);
     throw new Error(error.message || "Could not create official holiday");
   }
 };
@@ -31,7 +30,6 @@ exports.getAllHolidays = async () => {
     });
     return holidays;
   } catch (error) {
-    console.error("Error fetching official holidays:", error);
     throw new Error("Could not fetch official holidays");
   }
 };
@@ -53,7 +51,6 @@ exports.getHolidaysByDateRange = async (start_date, end_date) => {
 
     return holidays;
   } catch (error) {
-    console.error("Error fetching holidays by date range:", error);
     throw new Error("Could not fetch holidays for the specified date range");
   }
 };
@@ -66,7 +63,10 @@ exports.updateHoliday = async (holiday_id, updateData) => {
       throw new Error("Holiday not found");
     }
 
-    if (updateData.holiday_date && updateData.holiday_date !== holiday.holiday_date) {
+    if (
+      updateData.holiday_date &&
+      updateData.holiday_date !== holiday.holiday_date
+    ) {
       const existingHoliday = await OfficialHoliday.findOne({
         where: {
           holiday_date: updateData.holiday_date,
@@ -87,7 +87,6 @@ exports.updateHoliday = async (holiday_id, updateData) => {
 
     return holiday;
   } catch (error) {
-    console.error("Error updating official holiday:", error);
     throw new Error(error.message || "Could not update official holiday");
   }
 };
@@ -103,7 +102,6 @@ exports.deleteHoliday = async (holiday_id) => {
     await holiday.destroy();
     return { message: "Holiday deleted successfully" };
   } catch (error) {
-    console.error("Error deleting official holiday:", error);
     throw new Error(error.message || "Could not delete official holiday");
   }
 };

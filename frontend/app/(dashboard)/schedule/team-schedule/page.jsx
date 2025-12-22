@@ -85,7 +85,6 @@ const SchedulePage = () => {
 
       setTeamSchedules(schedulesByDate);
     } catch (error) {
-      console.error("Error fetching team schedule:", error);
     } finally {
       setLoading(false);
     }
