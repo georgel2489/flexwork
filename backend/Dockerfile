@@ -14,5 +14,5 @@ RUN yarn install --immutable
 # Copy application code
 COPY . .
 
-EXPOSE 3001
+EXPOSE 4000
 CMD ["yarn", "start"]
