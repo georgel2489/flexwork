@@ -5,8 +5,9 @@ WORKDIR /usr/src/app
 # Enable Corepack for Yarn
 RUN corepack enable
 
-# Copy package files
-COPY package.json yarn.lock* ./
+# Copy package files and Yarn Berry configuration
+COPY package.json yarn.lock* .yarnrc.yml* ./
+COPY .yarn .yarn
 
 # Install dependencies
 RUN yarn install --immutable
