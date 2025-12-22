@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY}/spm-backend:${IMAGE_TAG:-latest}
     ports:
       - "3001:3001"
     environment:
@@ -24,9 +22,7 @@ services:
       - app-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY}/spm-frontend:${IMAGE_TAG:-latest}
     ports:
       - "80:80"
     environment:
