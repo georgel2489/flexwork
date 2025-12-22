@@ -34,5 +34,9 @@ COPY --from=build /app /app
 # Expose port 80
 EXPOSE 80
 
+# Set Node.js options for low-resource environments
+ENV NODE_OPTIONS="--max-old-space-size=512 --max-semi-space-size=2"
+ENV UV_THREADPOOL_SIZE=2
+
 # Start the Next.js server
 CMD ["yarn", "start"]

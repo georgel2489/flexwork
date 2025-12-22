@@ -15,4 +15,9 @@ RUN yarn install --immutable
 COPY . .
 
 EXPOSE 4000
+
+# Set Node.js options for low-resource environments
+ENV NODE_OPTIONS="--max-old-space-size=512 --max-semi-space-size=2"
+ENV UV_THREADPOOL_SIZE=2
+
 CMD ["yarn", "start"]
