@@ -24,6 +24,7 @@ export default function SignIn() {
             redirectTo: '/',
           });
         } catch (error) {
+          console.log("Sign in error:", error);
           if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
             throw error;
           }
