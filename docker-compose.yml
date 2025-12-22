@@ -3,6 +3,9 @@ version: '3.8'
 services:
   backend:
     image: ghcr.io/georgel2489/flexwork-backend:main
+    security_opt:
+      - seccomp:unconfined
+    restart: always
     ports:
       - "4000:4000"
     environment:
@@ -15,52 +18,25 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - MAILGUN_API_KEY=${MAILGUN_API_KEY}
       - MAILGUN_DOMAIN=${MAILGUN_DOMAIN}
-      - UV_THREADPOOL_SIZE=4
     depends_on:
       - db
-    restart: unless-stopped
     networks:
       - app-network
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
   frontend:
     image: ghcr.io/georgel2489/flexwork-frontend:main
+    security_opt:
+      - seccomp:unconfined
+    restart: always
     ports:
       - "3000:80"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - UV_THREADPOOL_SIZE=4
     depends_on:
       - backend
-    restart: unless-stopped
     networks:
       - app-network
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
   db:
     image: postgres:15-alpine
