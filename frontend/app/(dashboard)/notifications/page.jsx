@@ -45,8 +45,7 @@ export default function NotificationCenter() {
         );
 
         setNotifications(notificationResponse.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchNotifications();
@@ -68,8 +67,7 @@ export default function NotificationCenter() {
         status: "read",
       }));
       setNotifications(updatedNotifications);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleMarkAsRead = async (notificationId) => {
@@ -89,8 +87,7 @@ export default function NotificationCenter() {
           : notification
       );
       setNotifications(updatedNotifications);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleNotificationClick = (notification) => {
@@ -103,8 +100,12 @@ export default function NotificationCenter() {
   };
 
   const indexOfLastNotification = currentPage * notificationsPerPage;
-  const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage;
-  const currentNotifications = notifications.slice(indexOfFirstNotification, indexOfLastNotification);
+  const indexOfFirstNotification =
+    indexOfLastNotification - notificationsPerPage;
+  const currentNotifications = notifications.slice(
+    indexOfFirstNotification,
+    indexOfLastNotification
+  );
 
   const nextPage = () => {
     if (currentPage < Math.ceil(notifications.length / notificationsPerPage)) {
@@ -118,7 +119,9 @@ export default function NotificationCenter() {
     }
   };
 
-  const allRead = notifications.length == 0 || notifications.every(notification => notification.status === "read");
+  const allRead =
+    notifications.length == 0 ||
+    notifications.every((notification) => notification.status === "read");
 
   return (
     <Box sx={{ p: 3 }}>
@@ -141,7 +144,10 @@ export default function NotificationCenter() {
               <ListItem
                 key={notification.id}
                 sx={{
-                  backgroundColor: notification.status === "unread" ? "#ffbf80" : "transparent",
+                  backgroundColor:
+                    notification.status === "unread"
+                      ? "#ffbf80"
+                      : "transparent",
                   cursor: "pointer",
                   "&:hover": {
                     opacity: 0.8,
@@ -158,16 +164,24 @@ export default function NotificationCenter() {
           </List>
         )}
         <Box sx={{ display: "flex", justifyContent: "space-between", p: 2 }}>
-          <Button variant="outlined" onClick={prevPage} disabled={currentPage === 1}>
+          <Button
+            variant="outlined"
+            onClick={prevPage}
+            disabled={currentPage === 1}
+          >
             Previous
           </Button>
           <Typography variant="body2">
-            Page {currentPage} of {Math.ceil(notifications.length / notificationsPerPage)}
+            Page {currentPage} of{" "}
+            {Math.ceil(notifications.length / notificationsPerPage)}
           </Typography>
           <Button
             variant="outlined"
             onClick={nextPage}
-            disabled={currentPage === Math.ceil(notifications.length / notificationsPerPage)}
+            disabled={
+              currentPage ===
+              Math.ceil(notifications.length / notificationsPerPage)
+            }
           >
             Next
           </Button>

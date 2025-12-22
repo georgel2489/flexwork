@@ -1,14 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState } from 'react';
-import { Snackbar, Alert } from '@mui/material';
+import React, { createContext, useContext, useState } from "react";
+import { Snackbar, Alert } from "@mui/material";
 
 const NotificationContext = createContext();
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotification must be used within NotificationProvider');
+    throw new Error("useNotification must be used within NotificationProvider");
   }
   return context;
 };
@@ -16,11 +16,11 @@ export const useNotification = () => {
 export const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState({
     open: false,
-    message: '',
-    severity: 'info',
+    message: "",
+    severity: "info",
   });
 
-  const showNotification = (message, severity = 'info') => {
+  const showNotification = (message, severity = "info") => {
     setNotification({
       open: true,
       message,
@@ -28,13 +28,13 @@ export const NotificationProvider = ({ children }) => {
     });
   };
 
-  const showSuccess = (message) => showNotification(message, 'success');
-  const showError = (message) => showNotification(message, 'error');
-  const showWarning = (message) => showNotification(message, 'warning');
-  const showInfo = (message) => showNotification(message, 'info');
+  const showSuccess = (message) => showNotification(message, "success");
+  const showError = (message) => showNotification(message, "error");
+  const showWarning = (message) => showNotification(message, "warning");
+  const showInfo = (message) => showNotification(message, "info");
 
   const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setNotification({ ...notification, open: false });
@@ -42,16 +42,26 @@ export const NotificationProvider = ({ children }) => {
 
   return (
     <NotificationContext.Provider
-      value={{ showNotification, showSuccess, showError, showWarning, showInfo }}
+      value={{
+        showNotification,
+        showSuccess,
+        showError,
+        showWarning,
+        showInfo,
+      }}
     >
       {children}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert onClose={handleClose} severity={notification.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleClose}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
           {notification.message}
         </Alert>
       </Snackbar>

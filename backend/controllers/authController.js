@@ -15,12 +15,10 @@ exports.forgetPassword = async (req, res) => {
 
   try {
     const result = await authService.forgetPassword(email);
-    return res
-      .status(200)
-      .json({
-        message: "Password reset link sent to your email",
-        reset_url: result.reset_url,
-      });
+    return res.status(200).json({
+      message: "Password reset link sent to your email",
+      reset_url: result.reset_url,
+    });
   } catch (error) {
     return res.status(404).json({ message: error.message });
   }

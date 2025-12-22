@@ -1,5 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
-    const RequestGroup = sequelize.define('RequestGroup', {
+  const RequestGroup = sequelize.define(
+    "RequestGroup",
+    {
       request_group_id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -15,11 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
-    }, {
+    },
+    {
       timestamps: false,
-      tableName: 'request_groups',
-    });
-  
-    return RequestGroup;
-  };
-  
+      tableName: "request_groups",
+    }
+  );
+
+  return RequestGroup;
+};

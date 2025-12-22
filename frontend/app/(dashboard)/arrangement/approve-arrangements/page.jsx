@@ -67,14 +67,13 @@ const RequestGroupsPage = () => {
       );
 
       if (!response.ok) {
-
         throw new Error("Network response was not ok");
       }
 
       const data = await response.json();
 
       if (append) {
-        setRequestGroups(prev => [...prev, ...(data.request_groups || [])]);
+        setRequestGroups((prev) => [...prev, ...(data.request_groups || [])]);
       } else {
         setRequestGroups(data.request_groups || []);
       }
@@ -99,8 +98,8 @@ const RequestGroupsPage = () => {
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 100
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 100
       ) {
         if (hasMore && !loading) {
           const nextPage = page + 1;
@@ -110,8 +109,8 @@ const RequestGroupsPage = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [hasMore, loading, page]);
 
   const handleSort = (sortField) => {
@@ -127,7 +126,6 @@ const RequestGroupsPage = () => {
     setSortBy(event.target.value);
     handleSort(event.target.value);
   };
-
 
   const handleApprove = async (groupId) => {
     try {
@@ -148,11 +146,9 @@ const RequestGroupsPage = () => {
         [groupId]: "approved",
       }));
     } catch (err) {
-
       setError(err.message);
     }
   };
-
 
   const handleRejectOpen = (groupId) => {
     setSelectedGroupId(groupId);
@@ -164,7 +160,6 @@ const RequestGroupsPage = () => {
     setRejectComment("");
     setSelectedGroupId(null);
   };
-
 
   const handleReject = async () => {
     try {
@@ -190,11 +185,9 @@ const RequestGroupsPage = () => {
 
       handleRejectClose();
     } catch (err) {
-
       setError(err.message);
     }
   };
-
 
   const handleUndo = async (groupId) => {
     try {
@@ -216,7 +209,6 @@ const RequestGroupsPage = () => {
         [groupId]: null,
       }));
     } catch (err) {
-
       setError(err.message);
     }
   };
@@ -226,14 +218,14 @@ const RequestGroupsPage = () => {
       prevGroups.map((group) =>
         group.request_group_id === groupId
           ? {
-            ...group,
-            arrangement_requests: group.arrangement_requests.map(
-              (request) => ({
-                ...request,
-                request_status: newStatus,
-              })
-            ),
-          }
+              ...group,
+              arrangement_requests: group.arrangement_requests.map(
+                (request) => ({
+                  ...request,
+                  request_status: newStatus,
+                })
+              ),
+            }
           : group
       )
     );
@@ -278,12 +270,10 @@ const RequestGroupsPage = () => {
         throw new Error("Failed to approve selected requests");
       }
 
-
       updateGroupStatus(groupId, "Partially Approved");
 
       alert("Selected requests approved successfully.");
     } catch (err) {
-
       alert(`Error: ${err.message}`);
     }
   };
@@ -310,7 +300,12 @@ const RequestGroupsPage = () => {
 
   return (
     <Box p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <Box display="flex" gap={2}>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Filter by Status</InputLabel>
@@ -330,9 +325,7 @@ const RequestGroupsPage = () => {
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Sort By</InputLabel>
             <Select value={sortBy} onChange={handleSortChange} label="Sort By">
-              <MenuItem value="request_created_date">
-                Creation Date
-              </MenuItem>
+              <MenuItem value="request_created_date">Creation Date</MenuItem>
               <MenuItem value="arrangement_requests.0.start_date">
                 Request Date
               </MenuItem>
@@ -355,13 +348,20 @@ const RequestGroupsPage = () => {
             }}
           >
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Typography variant="h6">
                   {group.staff.staff_fname} {group.staff.staff_lname}
                 </Typography>
                 <Chip
                   label={group.arrangement_requests[0].request_status}
-                  color={getStatusColor(group.arrangement_requests[0].request_status)}
+                  color={getStatusColor(
+                    group.arrangement_requests[0].request_status
+                  )}
                   size="medium"
                 />
               </Box>
@@ -395,7 +395,6 @@ const RequestGroupsPage = () => {
                       </Typography>
                       <Divider sx={{ my: 1 }} />
 
-
                       {group.arrangement_requests.length > 1 && (
                         <FormControlLabel
                           control={
@@ -420,101 +419,99 @@ const RequestGroupsPage = () => {
               </Stack>
 
               <Box mt={2} display="flex" justifyContent="space-between">
-
                 {group.arrangement_requests.length === 1 ? (
                   <>
                     {group.arrangement_requests[0].request_status ===
                       "Pending" && (
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          onClick={() => handleApprove(group.request_group_id)}
-                        >
-                          Approve
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleApprove(group.request_group_id)}
+                      >
+                        Approve
+                      </Button>
+                    )}
                     {group.arrangement_requests[0].request_status ===
                       "Pending" && (
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          size="small"
-                          onClick={() => handleRejectOpen(group.request_group_id)}
-                        >
-                          Reject
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        onClick={() => handleRejectOpen(group.request_group_id)}
+                      >
+                        Reject
+                      </Button>
+                    )}
                     {(group.arrangement_requests[0].request_status ===
                       "Approved" ||
                       group.arrangement_requests[0].request_status ===
-                      "Rejected") && (
-                        <Button
-                          variant="contained"
-                          color="warning"
-                          size="small"
-                          onClick={() => handleUndo(group.request_group_id)}
-                        >
-                          Undo
-                        </Button>
-                      )}
+                        "Rejected") && (
+                      <Button
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        onClick={() => handleUndo(group.request_group_id)}
+                      >
+                        Undo
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <>
-
                     {group.arrangement_requests.some(
                       (request) => request.request_status === "Pending"
                     ) && (
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          onClick={() => handleApprove(group.request_group_id)}
-                        >
-                          Approve All
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleApprove(group.request_group_id)}
+                      >
+                        Approve All
+                      </Button>
+                    )}
                     {group.arrangement_requests.some(
                       (request) => request.request_status === "Pending"
                     ) && (
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          size="small"
-                          onClick={() => handleRejectOpen(group.request_group_id)}
-                        >
-                          Reject All
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        onClick={() => handleRejectOpen(group.request_group_id)}
+                      >
+                        Reject All
+                      </Button>
+                    )}
                     {group.arrangement_requests.some(
                       (request) =>
                         request.request_status === "Approved" ||
                         request.request_status === "Rejected" ||
                         request.request_status === "Partially Approved"
                     ) && (
-                        <Button
-                          variant="contained"
-                          color="warning"
-                          size="small"
-                          onClick={() => handleUndo(group.request_group_id)}
-                        >
-                          Undo All
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        onClick={() => handleUndo(group.request_group_id)}
+                      >
+                        Undo All
+                      </Button>
+                    )}
                     {group.arrangement_requests.some(
                       (request) => request.request_status === "Pending"
                     ) && (
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() =>
-                            handleBatchApproveSelected(group.request_group_id)
-                          }
-                        >
-                          Approve Selected
-                        </Button>
-                      )}
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() =>
+                          handleBatchApproveSelected(group.request_group_id)
+                        }
+                      >
+                        Approve Selected
+                      </Button>
+                    )}
                   </>
                 )}
               </Box>
@@ -531,10 +528,11 @@ const RequestGroupsPage = () => {
 
       {!hasMore && requestGroups.length > 0 && (
         <Box display="flex" justifyContent="center" mt={3}>
-          <Typography color="textSecondary">No more requests to load</Typography>
+          <Typography color="textSecondary">
+            No more requests to load
+          </Typography>
         </Box>
       )}
-
 
       <Dialog open={openRejectDialog} onClose={handleRejectClose}>
         <DialogTitle>Reject Request</DialogTitle>

@@ -133,9 +133,8 @@ exports.revokeRequest = async (req, res) => {
 exports.getApprovedRequests = async (req, res) => {
   try {
     const manager_id = req.user.staff_id;
-    const arrangements = await arrangementService.getApprovedRequests(
-      manager_id
-    );
+    const arrangements =
+      await arrangementService.getApprovedRequests(manager_id);
     res.status(200).json(arrangements);
   } catch (error) {
     res.status(500).json({ error: "Could not fetch arrangement requests" });

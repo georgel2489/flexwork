@@ -48,10 +48,10 @@ router.post(
   arrangementController.rejectRequest
 );
 router.post(
-    "/manager/undo/:id",
-    authenticateToken,
-    authorizeRole([1, 3]),
-    arrangementController.undo
+  "/manager/undo/:id",
+  authenticateToken,
+  authorizeRole([1, 3]),
+  arrangementController.undo
 );
 router.post(
   "/manager/revoke/:id",

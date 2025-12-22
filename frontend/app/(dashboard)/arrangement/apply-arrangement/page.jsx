@@ -38,7 +38,6 @@ const ApplyArrangementPage = () => {
     }
   }, [session]);
 
-
   const calculateTwoWorkingDays = () => {
     const today = dayjs().startOf("day");
     let daysToAdd = 2;
@@ -47,13 +46,11 @@ const ApplyArrangementPage = () => {
     while (daysToAdd > 0) {
       adjustedDate = adjustedDate.add(1, "day");
       if (adjustedDate.day() !== 0 && adjustedDate.day() !== 6) {
-
         daysToAdd--;
       }
     }
     return adjustedDate;
   };
-
 
   const [selectedDate, setSelectedDate] = useState(calculateTwoWorkingDays());
   const [startDate, setStartDate] = useState(calculateTwoWorkingDays());
@@ -79,11 +76,15 @@ const ApplyArrangementPage = () => {
     const adjustedDate = calculateTwoWorkingDays();
 
     if (newDate.day() === 0 || newDate.day() === 6) {
-      showWarning("You cannot apply for WFH on weekends. Please select a weekday.");
+      showWarning(
+        "You cannot apply for WFH on weekends. Please select a weekday."
+      );
     } else if (newDate.isSameOrAfter(adjustedDate, "day")) {
       setSelectedDate(newDate);
     } else {
-      showWarning("Please select a date that is at least 2 working days in advance.");
+      showWarning(
+        "Please select a date that is at least 2 working days in advance."
+      );
     }
   };
 
@@ -92,7 +93,9 @@ const ApplyArrangementPage = () => {
     const adjustedDate = calculateTwoWorkingDays();
 
     if (newStartDate.day() === 0 || newStartDate.day() === 6) {
-      showWarning("The start date cannot be on a weekend. Please select a weekday.");
+      showWarning(
+        "The start date cannot be on a weekend. Please select a weekday."
+      );
     } else if (newStartDate.isSameOrAfter(adjustedDate, "day")) {
       setStartDate(newStartDate);
     } else {
@@ -141,16 +144,16 @@ const ApplyArrangementPage = () => {
 
       showSuccess("Your WFH request has been submitted successfully!");
 
-
       setApplyMode("");
       setSessionType("");
       setDesc("");
       setSelectedDate(calculateTwoWorkingDays());
 
-
       setTimeout(() => router.push("/arrangement/my-requests"), 1500);
     } catch (error) {
-      showError("There was an error processing your request. Please try again.");
+      showError(
+        "There was an error processing your request. Please try again."
+      );
     }
   };
 
@@ -170,10 +173,19 @@ const ApplyArrangementPage = () => {
       return;
     }
 
-
-    const selectedDayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(selectedDaysOfWeek);
+    const selectedDayIndex = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ].indexOf(selectedDaysOfWeek);
     if (startDate.day() !== selectedDayIndex) {
-      showWarning(`The start date must match the selected day (${selectedDaysOfWeek}).`);
+      showWarning(
+        `The start date must match the selected day (${selectedDaysOfWeek}).`
+      );
       return;
     }
 
@@ -209,9 +221,7 @@ const ApplyArrangementPage = () => {
 
       showSuccess(successMessage);
 
-
       setApplyMode("");
-
 
       setTimeout(() => router.push("/arrangement/my-requests"), 1500);
       setSessionType("");
@@ -262,7 +272,6 @@ const ApplyArrangementPage = () => {
           </Select>
         </FormControl>
 
-
         {applyMode === "ad-hoc" && (
           <>
             <TextField
@@ -282,7 +291,6 @@ const ApplyArrangementPage = () => {
             />
           </>
         )}
-
 
         {applyMode === "batch" && (
           <>
@@ -324,7 +332,6 @@ const ApplyArrangementPage = () => {
               fullWidth
             />
 
-
             <FormControl fullWidth>
               <InputLabel id="repeat-type-label">Repeat Type</InputLabel>
               <Select
@@ -339,7 +346,6 @@ const ApplyArrangementPage = () => {
               </Select>
             </FormControl>
 
-
             <TextField
               id="description"
               label="Description (Optional)"
@@ -349,7 +355,6 @@ const ApplyArrangementPage = () => {
             />
           </>
         )}
-
 
         <Button
           variant="contained"

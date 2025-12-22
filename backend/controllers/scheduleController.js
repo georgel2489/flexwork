@@ -1,4 +1,4 @@
-const scheduleService = require('../services/scheduleService');
+const scheduleService = require("../services/scheduleService");
 
 exports.createSchedule = async (req, res) => {
   try {

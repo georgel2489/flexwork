@@ -5,7 +5,9 @@ exports.createHoliday = async (req, res) => {
     const { holiday_date, holiday_name, description } = req.body;
 
     if (!holiday_date || !holiday_name) {
-      return res.status(400).json({ error: "Holiday date and name are required" });
+      return res
+        .status(400)
+        .json({ error: "Holiday date and name are required" });
     }
 
     const newHoliday = await holidayService.createHoliday({
@@ -37,10 +39,15 @@ exports.getHolidaysByDateRange = async (req, res) => {
     const { start_date, end_date } = req.query;
 
     if (!start_date || !end_date) {
-      return res.status(400).json({ error: "Start date and end date are required" });
+      return res
+        .status(400)
+        .json({ error: "Start date and end date are required" });
     }
 
-    const holidays = await holidayService.getHolidaysByDateRange(start_date, end_date);
+    const holidays = await holidayService.getHolidaysByDateRange(
+      start_date,
+      end_date
+    );
     res.status(200).json(holidays);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -52,7 +59,10 @@ exports.updateHoliday = async (req, res) => {
     const { holiday_id } = req.params;
     const updateData = req.body;
 
-    const updatedHoliday = await holidayService.updateHoliday(holiday_id, updateData);
+    const updatedHoliday = await holidayService.updateHoliday(
+      holiday_id,
+      updateData
+    );
 
     res.status(200).json({
       message: "Official holiday updated successfully",

@@ -101,10 +101,10 @@ const UsersPage = () => {
   }, [token, page, rowsPerPage]);
 
   const handleOpenDialog = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       dept: "Corlab",
-      country: "Moldova"
+      country: "Moldova",
     }));
     setOpenDialog(true);
   };
@@ -165,11 +165,11 @@ const UsersPage = () => {
 
   const handleEditClick = (user) => {
     setEditingUserId(user.staff_id);
-    const [fname, lname] = user.name.split(' ');
+    const [fname, lname] = user.name.split(" ");
     setEditedData({
-      staff_fname: fname || '',
-      staff_lname: lname || '',
-      position: user.position || '',
+      staff_fname: fname || "",
+      staff_lname: lname || "",
+      position: user.position || "",
       is_active: user.is_active,
     });
   };
@@ -180,7 +180,7 @@ const UsersPage = () => {
   };
 
   const handleEditChange = (field, value) => {
-    setEditedData(prev => ({
+    setEditedData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -256,23 +256,43 @@ const UsersPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Staff ID</strong></TableCell>
-              <TableCell><strong>First Name</strong></TableCell>
-              <TableCell><strong>Last Name</strong></TableCell>
-              <TableCell><strong>Email</strong></TableCell>
-              <TableCell><strong>Department</strong></TableCell>
-              <TableCell><strong>Position</strong></TableCell>
-              <TableCell><strong>Country</strong></TableCell>
-              <TableCell><strong>Role</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
+              <TableCell>
+                <strong>Staff ID</strong>
+              </TableCell>
+              <TableCell>
+                <strong>First Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Last Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Email</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Department</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Position</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Country</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Role</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Status</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Actions</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users.map((user) => {
               const isEditing = editingUserId === user.staff_id;
-              const [fname, lname] = user.name.split(' ');
-              
+              const [fname, lname] = user.name.split(" ");
+
               return (
                 <TableRow key={user.staff_id}>
                   <TableCell>{user.staff_id}</TableCell>
@@ -281,11 +301,13 @@ const UsersPage = () => {
                       <TextField
                         size="small"
                         value={editedData.staff_fname}
-                        onChange={(e) => handleEditChange('staff_fname', e.target.value)}
+                        onChange={(e) =>
+                          handleEditChange("staff_fname", e.target.value)
+                        }
                         fullWidth
                       />
                     ) : (
-                      fname || '-'
+                      fname || "-"
                     )}
                   </TableCell>
                   <TableCell>
@@ -293,11 +315,13 @@ const UsersPage = () => {
                       <TextField
                         size="small"
                         value={editedData.staff_lname}
-                        onChange={(e) => handleEditChange('staff_lname', e.target.value)}
+                        onChange={(e) =>
+                          handleEditChange("staff_lname", e.target.value)
+                        }
                         fullWidth
                       />
                     ) : (
-                      lname || '-'
+                      lname || "-"
                     )}
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -307,7 +331,9 @@ const UsersPage = () => {
                       <TextField
                         size="small"
                         value={editedData.position}
-                        onChange={(e) => handleEditChange('position', e.target.value)}
+                        onChange={(e) =>
+                          handleEditChange("position", e.target.value)
+                        }
                         fullWidth
                       />
                     ) : (
@@ -320,7 +346,9 @@ const UsersPage = () => {
                     {isEditing ? (
                       <Switch
                         checked={editedData.is_active}
-                        onChange={(e) => handleEditChange('is_active', e.target.checked)}
+                        onChange={(e) =>
+                          handleEditChange("is_active", e.target.checked)
+                        }
                         color="success"
                       />
                     ) : (
@@ -333,7 +361,7 @@ const UsersPage = () => {
                   </TableCell>
                   <TableCell>
                     {isEditing ? (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Box sx={{ display: "flex", gap: 1 }}>
                         <IconButton
                           size="small"
                           color="primary"
@@ -375,7 +403,12 @@ const UsersPage = () => {
         />
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Invite New User</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
@@ -453,7 +486,11 @@ const UsersPage = () => {
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
-          <Button onClick={handleCreateUser} color="primary" variant="contained">
+          <Button
+            onClick={handleCreateUser}
+            color="primary"
+            variant="contained"
+          >
             Create User
           </Button>
         </DialogActions>

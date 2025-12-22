@@ -9,9 +9,7 @@ export default function Layout(props) {
   return (
     <DashboardLayout>
       <Box sx={{ p: 3 }}>
-        <NotificationProvider>
-          {props.children}
-        </NotificationProvider>
+        <NotificationProvider>{props.children}</NotificationProvider>
       </Box>
     </DashboardLayout>
   );

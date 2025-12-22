@@ -9,113 +9,120 @@ jest.mock("next-auth/react");
 jest.mock("axios");
 
 describe("SchedulePage", () => {
-    const mockSession = {
-        user: {
-            token: "mock-token",
+  const mockSession = {
+    user: {
+      token: "mock-token",
+    },
+  };
+
+  beforeEach(() => {
+    useSession.mockReturnValue({ data: mockSession });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders without crashing", () => {
+    render(<SchedulePage />);
+    expect(screen.getByText("Select Department")).toBeInTheDocument();
+  });
+
+  it("fetches schedules on date change", async () => {
+    const mockSchedules = {
+      "2023-10-10": {
+        HR: {
+          Manager: {
+            "In office": ["Alice"],
+            "Work home": ["Bob"],
+          },
         },
+      },
     };
 
-    beforeEach(() => {
-        useSession.mockReturnValue({ data: mockSession });
-    });
+    axios.get.mockResolvedValueOnce({ data: mockSchedules });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+    render(<SchedulePage />);
 
-    it("renders without crashing", () => {
-        render(<SchedulePage />);
-        expect(screen.getByText("Select Department")).toBeInTheDocument();
-    });
+    const dateInput = screen.getByLabelText(/date/i);
+    fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
 
-    it("fetches schedules on date change", async () => {
-        const mockSchedules = {
-            "2023-10-10": {
-                "HR": {
-                    "Manager": {
-                        "In office": ["Alice"],
-                        "Work home": ["Bob"],
-                    },
-                },
-            },
-        };
+    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("HR Department")).toBeInTheDocument();
+  });
 
-        axios.get.mockResolvedValueOnce({ data: mockSchedules });
+  it("displays loading spinner while fetching schedules", async () => {
+    axios.get.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 1000))
+    );
 
-        render(<SchedulePage />);
+    render(<SchedulePage />);
 
-        const dateInput = screen.getByLabelText(/date/i);
-        fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
+    const dateInput = screen.getByLabelText(/date/i);
+    fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
-        expect(screen.getByText("HR Department")).toBeInTheDocument();
-    });
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument()
+    );
+  });
 
-    it("displays loading spinner while fetching schedules", async () => {
-        axios.get.mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 1000)));
+  it("filters schedules by department and role", async () => {
+    const mockSchedules = {
+      "2023-10-10": {
+        HR: {
+          Manager: {
+            "In office": ["Alice"],
+            "Work home": ["Bob"],
+          },
+          Developer: {
+            "In office": ["Charlie"],
+            "Work home": ["Dave"],
+          },
+        },
+        IT: {
+          Support: {
+            "In office": ["Eve"],
+            "Work home": ["Frank"],
+          },
+        },
+      },
+    };
 
-        render(<SchedulePage />);
+    axios.get.mockResolvedValueOnce({ data: mockSchedules });
 
-        const dateInput = screen.getByLabelText(/date/i);
-        fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
+    render(<SchedulePage />);
 
-        expect(screen.getByRole("progressbar")).toBeInTheDocument();
-        await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
-    });
+    const dateInput = screen.getByLabelText(/date/i);
+    fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
 
-    it("filters schedules by department and role", async () => {
-        const mockSchedules = {
-            "2023-10-10": {
-                "HR": {
-                    "Manager": {
-                        "In office": ["Alice"],
-                        "Work home": ["Bob"],
-                    },
-                    "Developer": {
-                        "In office": ["Charlie"],
-                        "Work home": ["Dave"],
-                    },
-                },
-                "IT": {
-                    "Support": {
-                        "In office": ["Eve"],
-                        "Work home": ["Frank"],
-                    },
-                },
-            },
-        };
+    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
 
-        axios.get.mockResolvedValueOnce({ data: mockSchedules });
+    const departmentSelect = screen.getByLabelText(/select department/i);
+    fireEvent.mouseDown(departmentSelect);
+    fireEvent.click(screen.getByText("HR"));
 
-        render(<SchedulePage />);
+    const roleSelect = screen.getByLabelText(/select role/i);
+    fireEvent.mouseDown(roleSelect);
+    fireEvent.click(screen.getByText("Manager"));
 
-        const dateInput = screen.getByLabelText(/date/i);
-        fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.queryByText("Charlie")).not.toBeInTheDocument();
+  });
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+  it("displays no schedules message when no schedules are available", async () => {
+    axios.get.mockResolvedValueOnce({ data: {} });
 
-        const departmentSelect = screen.getByLabelText(/select department/i);
-        fireEvent.mouseDown(departmentSelect);
-        fireEvent.click(screen.getByText("HR"));
+    render(<SchedulePage />);
 
-        const roleSelect = screen.getByLabelText(/select role/i);
-        fireEvent.mouseDown(roleSelect);
-        fireEvent.click(screen.getByText("Manager"));
+    const dateInput = screen.getByLabelText(/date/i);
+    fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
 
-        expect(screen.getByText("Alice")).toBeInTheDocument();
-        expect(screen.getByText("Bob")).toBeInTheDocument();
-        expect(screen.queryByText("Charlie")).not.toBeInTheDocument();
-    });
-
-    it("displays no schedules message when no schedules are available", async () => {
-        axios.get.mockResolvedValueOnce({ data: {} });
-
-        render(<SchedulePage />);
-
-        const dateInput = screen.getByLabelText(/date/i);
-        fireEvent.change(dateInput, { target: { value: "2023-10-10" } });
-
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
-        expect(screen.getByText("No schedules available for this date.")).toBeInTheDocument();
-    });
+    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+    expect(
+      screen.getByText("No schedules available for this date.")
+    ).toBeInTheDocument();
+  });
 });

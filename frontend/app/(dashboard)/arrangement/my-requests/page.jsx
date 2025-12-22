@@ -41,12 +41,12 @@ const RequestGroupsPage = () => {
 
   const getStatusColor = (status) => {
     const statusLower = status.toLowerCase();
-    if (statusLower === 'approved') return { bg: '#4caf50', text: '#fff' };
-    if (statusLower === 'pending') return { bg: '#ff9800', text: '#fff' };
-    if (statusLower === 'rejected') return { bg: '#f44336', text: '#fff' };
-    if (statusLower === 'withdrawn') return { bg: '#9e9e9e', text: '#fff' };
-    if (statusLower === 'revoked') return { bg: '#ff5722', text: '#fff' };
-    return { bg: '#757575', text: '#fff' };
+    if (statusLower === "approved") return { bg: "#4caf50", text: "#fff" };
+    if (statusLower === "pending") return { bg: "#ff9800", text: "#fff" };
+    if (statusLower === "rejected") return { bg: "#f44336", text: "#fff" };
+    if (statusLower === "withdrawn") return { bg: "#9e9e9e", text: "#fff" };
+    if (statusLower === "revoked") return { bg: "#ff5722", text: "#fff" };
+    return { bg: "#757575", text: "#fff" };
   };
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const RequestGroupsPage = () => {
       const data = await response.json();
 
       if (append) {
-        setRequestGroups(prev => [...prev, ...(data.request_groups || [])]);
+        setRequestGroups((prev) => [...prev, ...(data.request_groups || [])]);
       } else {
         setRequestGroups(data.request_groups || []);
       }
@@ -87,7 +87,6 @@ const RequestGroupsPage = () => {
       setHasMore(pageNum < (data.pagination?.totalPages || 0));
       setError(null);
     } catch (err) {
-      
       setError(err.message);
     } finally {
       setLoading(false);
@@ -105,8 +104,8 @@ const RequestGroupsPage = () => {
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 100
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 100
       ) {
         if (hasMore && !loading) {
           const nextPage = page + 1;
@@ -116,8 +115,8 @@ const RequestGroupsPage = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [hasMore, loading, page]);
 
   const handleSortChange = (event) => {
@@ -167,12 +166,14 @@ const RequestGroupsPage = () => {
       prevGroups.map((group) =>
         group.request_group_id === groupId
           ? {
-            ...group,
-            arrangement_requests: group.arrangement_requests.map((request) => ({
-              ...request,
-              request_status: newStatus,
-            })),
-          }
+              ...group,
+              arrangement_requests: group.arrangement_requests.map(
+                (request) => ({
+                  ...request,
+                  request_status: newStatus,
+                })
+              ),
+            }
           : group
       )
     );
@@ -183,11 +184,20 @@ const RequestGroupsPage = () => {
 
   return (
     <Box p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <Box display="flex" gap={2}>
           <Select value={sortBy} onChange={handleSortChange}>
-            <MenuItem value="request_created_date">Sort by Creation Date</MenuItem>
-            <MenuItem value="arrangement_requests.0.start_date">Sort by Request Date</MenuItem>
+            <MenuItem value="request_created_date">
+              Sort by Creation Date
+            </MenuItem>
+            <MenuItem value="arrangement_requests.0.start_date">
+              Sort by Request Date
+            </MenuItem>
           </Select>
           <Select value={filterByStatus} onChange={handleFilterChange}>
             <MenuItem value="all">Show All</MenuItem>
@@ -208,29 +218,56 @@ const RequestGroupsPage = () => {
 
       <Stack spacing={3}>
         {requestGroups.map((group) => (
-          <Card key={group.request_group_id} sx={{ display: "flex", flexDirection: "column", borderRadius: 2, boxShadow: 3, p: 2, width: "100%" }}>
+          <Card
+            key={group.request_group_id}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              borderRadius: 2,
+              boxShadow: 3,
+              p: 2,
+              width: "100%",
+            }}
+          >
             <CardContent>
               <Box display="flex" justifyContent="flex-end" mb={1}>
                 <Chip
                   label={group.arrangement_requests[0].request_status}
                   sx={{
-                    backgroundColor: getStatusColor(group.arrangement_requests[0].request_status).bg,
-                    color: getStatusColor(group.arrangement_requests[0].request_status).text,
-                    fontWeight: 'bold',
-                    borderRadius: '16px',
+                    backgroundColor: getStatusColor(
+                      group.arrangement_requests[0].request_status
+                    ).bg,
+                    color: getStatusColor(
+                      group.arrangement_requests[0].request_status
+                    ).text,
+                    fontWeight: "bold",
+                    borderRadius: "16px",
                     px: 1,
                   }}
                 />
               </Box>
-              <Typography variant="body2" color="textSecondary">Created on: {format(new Date(group.request_created_date), "dd/MM/yyyy")}</Typography>
-              <Typography variant="body2">Number of Requests: {group.arrangement_requests.length}</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Created on:{" "}
+                {format(new Date(group.request_created_date), "dd/MM/yyyy")}
+              </Typography>
+              <Typography variant="body2">
+                Number of Requests: {group.arrangement_requests.length}
+              </Typography>
 
               <Stack spacing={1} mt={2}>
                 {group.arrangement_requests.slice(0, 1).map((request) => (
                   <Box key={request.arrangement_id}>
-                    <Typography>Start Date: {format(new Date(request.start_date), "dd/MM/yyyy")}</Typography>
-                    <Typography>Session Type: {request.session_type}</Typography>
-                    <Typography>Description: {request.description || "No description provided"}</Typography>
+                    <Typography>
+                      Start Date:{" "}
+                      {format(new Date(request.start_date), "dd/MM/yyyy")}
+                    </Typography>
+                    <Typography>
+                      Session Type: {request.session_type}
+                    </Typography>
+                    <Typography>
+                      Description:{" "}
+                      {request.description || "No description provided"}
+                    </Typography>
                   </Box>
                 ))}
               </Stack>
@@ -258,14 +295,18 @@ const RequestGroupsPage = () => {
 
       {!hasMore && requestGroups.length > 0 && (
         <Box display="flex" justifyContent="center" mt={3}>
-          <Typography color="textSecondary">No more requests to load</Typography>
+          <Typography color="textSecondary">
+            No more requests to load
+          </Typography>
         </Box>
       )}
 
       <Dialog open={openDialog} onClose={closeWithdrawDialog}>
         <DialogTitle>Withdraw Request</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to withdraw this request?</Typography>
+          <Typography>
+            Are you sure you want to withdraw this request?
+          </Typography>
           <TextField
             label="Optional Comment"
             multiline
@@ -278,8 +319,12 @@ const RequestGroupsPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeWithdrawDialog} color="primary">Cancel</Button>
-          <Button onClick={confirmWithdraw} color="error" variant="contained">Withdraw</Button>
+          <Button onClick={closeWithdrawDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={confirmWithdraw} color="error" variant="contained">
+            Withdraw
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -3,9 +3,8 @@ const notificationService = require("../services/notificationService");
 exports.getNotificationsByStaff = async (req, res) => {
   try {
     const staffId = req.user.staff_id;
-    const notifications = await notificationService.getNotificationsByStaff(
-      staffId
-    );
+    const notifications =
+      await notificationService.getNotificationsByStaff(staffId);
     res.status(200).json(notifications);
   } catch (error) {
     res.status(500).json({ error: error.message });

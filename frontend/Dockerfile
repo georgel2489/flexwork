@@ -11,7 +11,7 @@ RUN corepack enable
 COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Copy the rest of the application code
 COPY . .
@@ -20,7 +20,7 @@ COPY . .
 RUN yarn build
 
 # Install only production dependencies
-RUN yarn install --production --frozen-lockfile --ignore-scripts --prefer-offline
+RUN yarn workspaces focus --production
 
 # Use Node.js as the runtime
 FROM node:18 AS production

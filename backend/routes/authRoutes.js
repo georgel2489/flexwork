@@ -162,7 +162,12 @@ router.post(
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.get("/users", authenticateToken, authorizeRole([1]), authController.getAllUsers);
+router.get(
+  "/users",
+  authenticateToken,
+  authorizeRole([1]),
+  authController.getAllUsers
+);
 
 /**
  * @swagger
@@ -248,7 +253,12 @@ router.get("/users", authenticateToken, authorizeRole([1]), authController.getAl
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post("/createuser", authenticateToken, authorizeRole([1]), authController.createUser);
+router.post(
+  "/createuser",
+  authenticateToken,
+  authorizeRole([1]),
+  authController.createUser
+);
 
 /**
  * @swagger
@@ -292,6 +302,11 @@ router.post("/createuser", authenticateToken, authorizeRole([1]), authController
  *       404:
  *         description: User not found
  */
-router.put("/users/:userId", authenticateToken, authorizeRole([1]), authController.updateUser);
+router.put(
+  "/users/:userId",
+  authenticateToken,
+  authorizeRole([1]),
+  authController.updateUser
+);
 
 module.exports = router;

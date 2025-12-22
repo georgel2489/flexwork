@@ -262,12 +262,19 @@ export default function OfficialHolidaysPage() {
           />
         </Box>
 
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+        >
           <DialogTitle>
             {editMode ? "Edit Holiday" : "Add New Holiday"}
           </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+            >
               <DatePicker
                 label="Holiday Date *"
                 value={formData.holiday_date}

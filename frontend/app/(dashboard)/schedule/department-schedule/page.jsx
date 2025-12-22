@@ -40,7 +40,7 @@ const SchedulePage = () => {
       setToken(session.user.token);
       setDepartmentName(session.user.dept);
     } else {
-      window.location.reload()
+      window.location.reload();
     }
   }, [session]);
 
@@ -49,7 +49,7 @@ const SchedulePage = () => {
       if (!token) {
         setToken(session?.user?.token);
         return;
-      };
+      }
       setLoading(true);
       try {
         const formattedDate = selectedDate.format("YYYY-MM-DD");
@@ -71,7 +71,11 @@ const SchedulePage = () => {
     fetchSchedules();
   }, [selectedDate, departmentName, token]);
 
-  const roles = schedules ? Object.keys(schedules[selectedDate.format("YYYY-MM-DD")]?.[departmentName] || {}) : [];
+  const roles = schedules
+    ? Object.keys(
+        schedules[selectedDate.format("YYYY-MM-DD")]?.[departmentName] || {}
+      )
+    : [];
 
   const handleRoleChange = (event) => {
     setSelectedRole(event.target.value);
@@ -87,13 +91,23 @@ const SchedulePage = () => {
     const departmentSchedules = schedules?.[dateKey]?.[departmentName];
 
     if (!departmentSchedules) {
-      return <Typography>No schedules available for this date and department.</Typography>;
+      return (
+        <Typography>
+          No schedules available for this date and department.
+        </Typography>
+      );
     }
 
-    const filteredSchedules = selectedRole ? { [selectedRole]: departmentSchedules[selectedRole] } : departmentSchedules;
+    const filteredSchedules = selectedRole
+      ? { [selectedRole]: departmentSchedules[selectedRole] }
+      : departmentSchedules;
 
     if (!filteredSchedules || Object.keys(filteredSchedules).length === 0) {
-      return <Typography>No schedules available for this date, department, and role.</Typography>;
+      return (
+        <Typography>
+          No schedules available for this date, department, and role.
+        </Typography>
+      );
     }
 
     return (
@@ -104,27 +118,38 @@ const SchedulePage = () => {
             <Card key={role} style={{ marginBottom: "15px" }}>
               <CardContent>
                 <Typography variant="h6">{role}</Typography>
-                {roleSchedule["In office"] && roleSchedule["In office"].length > 0 && (
-                  <div>
-                    <Typography variant="h7" style={{ textDecoration: "underline" }}>
-                      In office:<br />
-                    </Typography>
-                    <Typography variant="body2">
-                      {roleSchedule["In office"].join(", ")}
-                    </Typography>
-                  </div>
-                )}
+                {roleSchedule["In office"] &&
+                  roleSchedule["In office"].length > 0 && (
+                    <div>
+                      <Typography
+                        variant="h7"
+                        style={{ textDecoration: "underline" }}
+                      >
+                        In office:
+                        <br />
+                      </Typography>
+                      <Typography variant="body2">
+                        {roleSchedule["In office"].join(", ")}
+                      </Typography>
+                    </div>
+                  )}
 
-                {roleSchedule["Work home"] && roleSchedule["Work home"].length > 0 && (
-                  <div><br />
-                    <Typography variant="h7" style={{ textDecoration: "underline" }}>
-                      Work home:<br />
-                    </Typography>
-                    <Typography variant="body2">
-                      {roleSchedule["Work home"].join(", ")}
-                    </Typography>
-                  </div>
-                )}
+                {roleSchedule["Work home"] &&
+                  roleSchedule["Work home"].length > 0 && (
+                    <div>
+                      <br />
+                      <Typography
+                        variant="h7"
+                        style={{ textDecoration: "underline" }}
+                      >
+                        Work home:
+                        <br />
+                      </Typography>
+                      <Typography variant="body2">
+                        {roleSchedule["Work home"].join(", ")}
+                      </Typography>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           );
@@ -138,13 +163,23 @@ const SchedulePage = () => {
     const departmentSchedules = schedules?.[dateKey]?.[departmentName];
 
     if (!departmentSchedules) {
-      return <Typography>No schedules available for this date and department.</Typography>;
+      return (
+        <Typography>
+          No schedules available for this date and department.
+        </Typography>
+      );
     }
 
-    const filteredSchedules = selectedRole ? { [selectedRole]: departmentSchedules[selectedRole] } : departmentSchedules;
+    const filteredSchedules = selectedRole
+      ? { [selectedRole]: departmentSchedules[selectedRole] }
+      : departmentSchedules;
 
     if (!filteredSchedules || Object.keys(filteredSchedules).length === 0) {
-      return <Typography>No schedules available for this date, department, and role.</Typography>;
+      return (
+        <Typography>
+          No schedules available for this date, department, and role.
+        </Typography>
+      );
     }
 
     return (
@@ -152,9 +187,15 @@ const SchedulePage = () => {
         <Table sx={{ minWidth: 650 }} size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: "16.66%", fontWeight: "bold" }}>Role</TableCell>
-              <TableCell sx={{ width: "41.67%", fontWeight: "bold" }}>In Office</TableCell>
-              <TableCell sx={{ width: "41.67%", fontWeight: "bold" }}>Work home</TableCell>
+              <TableCell sx={{ width: "16.66%", fontWeight: "bold" }}>
+                Role
+              </TableCell>
+              <TableCell sx={{ width: "41.67%", fontWeight: "bold" }}>
+                In Office
+              </TableCell>
+              <TableCell sx={{ width: "41.67%", fontWeight: "bold" }}>
+                Work home
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -163,16 +204,22 @@ const SchedulePage = () => {
 
               const renderWFHCell = () => {
                 const wfhRegular = roleSchedule["Work home"] || [];
-                return <Typography variant="subtitle2">{wfhRegular.join(", ")}</Typography>;
+                return (
+                  <Typography variant="subtitle2">
+                    {wfhRegular.join(", ")}
+                  </Typography>
+                );
               };
-
-
 
               return (
                 <TableRow key={role}>
                   <TableCell sx={{ width: "16.66%" }}>{role}</TableCell>
-                  <TableCell sx={{ width: "41.67%" }}>{(roleSchedule["In office"] || []).join(", ")}</TableCell>
-                  <TableCell sx={{ width: "41.67%" }}>{renderWFHCell()}</TableCell>
+                  <TableCell sx={{ width: "41.67%" }}>
+                    {(roleSchedule["In office"] || []).join(", ")}
+                  </TableCell>
+                  <TableCell sx={{ width: "41.67%" }}>
+                    {renderWFHCell()}
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -181,9 +228,6 @@ const SchedulePage = () => {
       </TableContainer>
     );
   };
-
-
-
 
   return (
     <Container>
@@ -194,10 +238,13 @@ const SchedulePage = () => {
         style={{ marginBottom: "20px" }}
       />
 
-
       <FormControl fullWidth style={{ marginBottom: "20px" }}>
         <InputLabel id="role-select-label">Select Role</InputLabel>
-        <Select labelId="role-select-label" value={selectedRole} onChange={handleRoleChange}>
+        <Select
+          labelId="role-select-label"
+          value={selectedRole}
+          onChange={handleRoleChange}
+        >
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
@@ -209,7 +256,13 @@ const SchedulePage = () => {
         </Select>
       </FormControl>
 
-      {loading ? <CircularProgress /> : isMobile ? renderMobileCards() : renderTable()}
+      {loading ? (
+        <CircularProgress />
+      ) : isMobile ? (
+        renderMobileCards()
+      ) : (
+        renderTable()
+      )}
     </Container>
   );
 };

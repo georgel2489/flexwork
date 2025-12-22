@@ -1,12 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, Select, MenuItem, Divider, Box, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Select,
+  MenuItem,
+  Divider,
+  Box,
+  Stack,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 
 const RevokeRequestsPage = () => {
-  const [sortBy, setSortBy] = useState('request_created_date');
+  const [sortBy, setSortBy] = useState("request_created_date");
   const [requestGroups, setRequestGroups] = useState([]);
   const [comments, setComments] = useState({});
   const [loading, setLoading] = useState(false);
@@ -22,10 +38,9 @@ const RevokeRequestsPage = () => {
     if (session?.user) {
       setToken(session.user.token);
     } else {
-      window.location.reload()
+      window.location.reload();
     }
   }, [session]);
-
 
   const fetchApprovedRequests = async () => {
     if (!token) return;
@@ -50,10 +65,8 @@ const RevokeRequestsPage = () => {
   };
 
   useEffect(() => {
-
     fetchApprovedRequests();
   }, [token]);
-
 
   const handleSort = (sortField) => {
     const sortedGroups = [...requestGroups].sort((a, b) => {
@@ -69,36 +82,39 @@ const RevokeRequestsPage = () => {
     handleSort(event.target.value);
   };
 
-
   const handleRevoke = async () => {
     const { groupId, arrangementId, comment } = selectedRequest;
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/arrangements/manager/revoke/${groupId}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/arrangements/manager/revoke/${groupId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ comment }),
+        }
+      );
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to revoke the request.');
+        throw new Error(result.error || "Failed to revoke the request.");
       }
 
-
-      setRequestGroups(prevGroups =>
-        prevGroups.map(group =>
+      setRequestGroups((prevGroups) =>
+        prevGroups.map((group) =>
           group.request_group_id === groupId
             ? {
-              ...group,
-              arrangement_requests: group.arrangement_requests.filter(req => req.arrangement_id !== arrangementId),
-            }
+                ...group,
+                arrangement_requests: group.arrangement_requests.filter(
+                  (req) => req.arrangement_id !== arrangementId
+                ),
+              }
             : group
         )
       );
@@ -135,55 +151,64 @@ const RevokeRequestsPage = () => {
 
   return (
     <Box p={2}>
-
       <Box display="flex" justifyContent="space-between" mb={3}>
         <Typography variant="h5">Revoke Approved Requests</Typography>
         <Select value={sortBy} onChange={handleSortChange}>
-          <MenuItem value="request_created_date">Sort by Creation Date</MenuItem>
-          <MenuItem value="arrangement_requests.0.start_date">Sort by Request Date</MenuItem>
+          <MenuItem value="request_created_date">
+            Sort by Creation Date
+          </MenuItem>
+          <MenuItem value="arrangement_requests.0.start_date">
+            Sort by Request Date
+          </MenuItem>
         </Select>
       </Box>
-
 
       {dataLoading ? (
         <Typography>Loading approved requests...</Typography>
       ) : (
         <>
-
           <Stack spacing={3}>
             {requestGroups.length > 0 ? (
               requestGroups.map((group) => (
                 <Card
                   key={group.request_group_id}
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
+                    display: "flex",
+                    flexDirection: "column",
                     borderRadius: 2,
                     boxShadow: 3,
                     p: 2,
-                    width: '100%',
+                    width: "100%",
                   }}
                 >
-
                   <CardContent>
                     <Typography variant="h6">
                       {group.staff.staff_fname} {group.staff.staff_lname}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">{group.staff.dept} - {group.staff.position}</Typography>
                     <Typography variant="body2" color="textSecondary">
-                      Created on: {format(new Date(group.request_created_date), 'dd/MM/yyyy')}
+                      {group.staff.dept} - {group.staff.position}
                     </Typography>
-                    <Typography variant="body2">Number of Approved Requests: {group.arrangement_requests.length}</Typography>
-
+                    <Typography variant="body2" color="textSecondary">
+                      Created on:{" "}
+                      {format(
+                        new Date(group.request_created_date),
+                        "dd/MM/yyyy"
+                      )}
+                    </Typography>
+                    <Typography variant="body2">
+                      Number of Approved Requests:{" "}
+                      {group.arrangement_requests.length}
+                    </Typography>
 
                     <Stack spacing={2} mt={2}>
                       {group.arrangement_requests.map((request) => (
                         <Box key={request.arrangement_id}>
                           <Typography>
-                            Start Date: {format(new Date(request.start_date), 'dd/MM/yyyy')}
+                            Start Date:{" "}
+                            {format(new Date(request.start_date), "dd/MM/yyyy")}
                           </Typography>
                           <Typography>
-                            Session Type: {request.session_type || 'N/A'}
+                            Session Type: {request.session_type || "N/A"}
                           </Typography>
                           <Typography color="green">
                             Status: {request.request_status}
@@ -194,8 +219,10 @@ const RevokeRequestsPage = () => {
                             rows={2}
                             variant="outlined"
                             fullWidth
-                            value={comments[request.arrangement_id] || ''}
-                            onChange={(event) => handleCommentChange(request.arrangement_id, event)}
+                            value={comments[request.arrangement_id] || ""}
+                            onChange={(event) =>
+                              handleCommentChange(request.arrangement_id, event)
+                            }
                             sx={{ mt: 1 }}
                           />
                           <Divider sx={{ my: 2 }} />
@@ -203,10 +230,15 @@ const RevokeRequestsPage = () => {
                             variant="contained"
                             color="secondary"
                             size="small"
-                            onClick={() => handleOpenConfirmDialog(group.request_group_id, request.arrangement_id)}
+                            onClick={() =>
+                              handleOpenConfirmDialog(
+                                group.request_group_id,
+                                request.arrangement_id
+                              )
+                            }
                             disabled={loading}
                           >
-                            {loading ? 'Revoking...' : 'Revoke'}
+                            {loading ? "Revoking..." : "Revoke"}
                           </Button>
                         </Box>
                       ))}
@@ -221,11 +253,7 @@ const RevokeRequestsPage = () => {
         </>
       )}
 
-
-      <Dialog
-        open={openConfirmDialog}
-        onClose={handleCloseConfirmDialog}
-      >
+      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
         <DialogTitle>Confirm Revocation</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -242,11 +270,7 @@ const RevokeRequestsPage = () => {
         </DialogActions>
       </Dialog>
 
-
-      <Dialog
-        open={openSuccessDialog}
-        onClose={handleCloseSuccessDialog}
-      >
+      <Dialog open={openSuccessDialog} onClose={handleCloseSuccessDialog}>
         <DialogTitle>Success</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -260,8 +284,11 @@ const RevokeRequestsPage = () => {
         </DialogActions>
       </Dialog>
 
-
-      {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
+      {error && (
+        <Typography color="error" sx={{ mt: 2 }}>
+          {error}
+        </Typography>
+      )}
     </Box>
   );
 };

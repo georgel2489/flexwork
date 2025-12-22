@@ -50,7 +50,8 @@ export default function HomePage() {
 
         const filteredRequests = pendingRes.data.request_groups.filter(
           (group) => {
-            const status = group.arrangement_requests[0].request_status.toLowerCase();
+            const status =
+              group.arrangement_requests[0].request_status.toLowerCase();
             return status === "pending";
           }
         );
@@ -59,8 +60,7 @@ export default function HomePage() {
           pendingRequests: filteredRequests?.length || 0,
           waitingApproval: approvalRes?.data?.request_groups?.length || 0,
         });
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchStats();

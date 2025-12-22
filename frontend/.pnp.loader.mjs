@@ -1,4 +1,6 @@
 /* eslint-disable */
+// @ts-nocheck
+
 import fs from 'fs';
 import { URL as URL$1, fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
@@ -893,6 +895,7 @@ class ProxiedFS extends FakeFS {
   watch(p, a, b) {
     return this.baseFs.watch(
       this.mapToBase(p),
+      // @ts-expect-error
       a,
       b
     );
@@ -900,6 +903,7 @@ class ProxiedFS extends FakeFS {
   watchFile(p, a, b) {
     return this.baseFs.watchFile(
       this.mapToBase(p),
+      // @ts-expect-error
       a,
       b
     );
@@ -1319,6 +1323,7 @@ class NodeFS extends BasePortableFakeFS {
   watch(p, a, b) {
     return this.realFs.watch(
       npath.fromPortablePath(p),
+      // @ts-expect-error
       a,
       b
     );
@@ -1326,6 +1331,7 @@ class NodeFS extends BasePortableFakeFS {
   watchFile(p, a, b) {
     return this.realFs.watchFile(
       npath.fromPortablePath(p),
+      // @ts-expect-error
       a,
       b
     );
@@ -2036,6 +2042,7 @@ async function resolve$1(originalSpecifier, context, nextResolve) {
   try {
     result = pnpapi.resolveRequest(specifier, issuer, {
       conditions: new Set(conditions),
+      // TODO: Handle --experimental-specifier-resolution=node
       extensions: allowLegacyResolve ? void 0 : []
     });
   } catch (err) {
@@ -2066,6 +2073,9 @@ if (!HAS_LAZY_LOADED_TRANSLATORS) {
       try {
         return fs.readFileSync(args[0], {
           encoding: `utf8`,
+          // @ts-expect-error - The docs says it needs to be a string but
+          // links to https://nodejs.org/dist/latest-v20.x/docs/api/fs.html#file-system-flags
+          // which says it can be a number which matches the implementation.
           flag: args[1]
         });
       } catch {
@@ -2093,6 +2103,14 @@ if (!HAS_LAZY_LOADED_TRANSLATORS) {
             stats.ino,
             stats.size,
             stats.blocks
+            // atime sec
+            // atime ns
+            // mtime sec
+            // mtime ns
+            // ctime sec
+            // ctime ns
+            // birthtime sec
+            // birthtime ns
           ]);
         } catch {
         }

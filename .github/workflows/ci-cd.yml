@@ -15,29 +15,29 @@ jobs:
   backend-test:
     name: Backend Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Enable Corepack
         run: corepack enable
-      
+
       - name: Install dependencies
         working-directory: ./backend
-        run: yarn install --frozen-lockfile
-      
+        run: yarn install --immutable
+
       - name: Run tests
         working-directory: ./backend
         run: yarn test
         env:
           NODE_ENV: test
-      
+
       - name: Generate coverage report
         working-directory: ./backend
         run: yarn coverage
@@ -46,28 +46,28 @@ jobs:
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Enable Corepack
         run: corepack enable
-      
+
       - name: Install dependencies
         working-directory: ./frontend
-        run: yarn install --frozen-lockfile
-      
+        run: yarn install --immutable
+
       - name: Lint code
         working-directory: ./frontend
         run: yarn lint
         continue-on-error: true
-      
+
       - name: Build application
         working-directory: ./frontend
         run: yarn build
@@ -82,21 +82,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Extract metadata for backend
         id: meta-backend
         uses: docker/metadata-action@v5
@@ -106,7 +106,7 @@ jobs:
             type=ref,event=branch
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
-      
+
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
@@ -117,7 +117,7 @@ jobs:
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       - name: Extract metadata for frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
@@ -127,7 +127,7 @@ jobs:
             type=ref,event=branch
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
-      
+
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:

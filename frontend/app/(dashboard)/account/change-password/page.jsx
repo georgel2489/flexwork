@@ -15,7 +15,7 @@ import {
 import { CheckCircle, Cancel } from "@mui/icons-material";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { signOut } from 'next-auth/react';
+import { signOut } from "next-auth/react";
 import { useNotification } from "../../../contexts/NotificationContext";
 
 const ChangePassword = () => {
@@ -92,9 +92,8 @@ const ChangePassword = () => {
       showSuccess("Password changed successfully! Signing Out ... ");
       setFieldsDisabled(true);
       setTimeout(() => {
-        signOut({ callbackUrl: '/' });
+        signOut({ callbackUrl: "/" });
       }, 2000);
-
     } catch (error) {
       showError(error.response?.data?.message || "Failed to change password");
     }

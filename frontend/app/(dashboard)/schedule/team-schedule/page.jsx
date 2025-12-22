@@ -12,7 +12,8 @@ import {
   Box,
   Paper,
   IconButton,
-  Grid, useTheme,
+  Grid,
+  useTheme,
   Chip,
   Dialog,
   DialogTitle,
@@ -23,10 +24,10 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import axios from "axios";
 
 const SchedulePage = () => {
@@ -36,7 +37,7 @@ const SchedulePage = () => {
   const [selectedMonth, setSelectedMonth] = useState(dayjs());
   const [teamSchedules, setTeamSchedules] = useState({});
   const [loading, setLoading] = useState(false);
-  const [displayFilter, setDisplayFilter] = useState('Work home');
+  const [displayFilter, setDisplayFilter] = useState("Work home");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDayData, setSelectedDayData] = useState(null);
 
@@ -53,8 +54,8 @@ const SchedulePage = () => {
 
     setLoading(true);
     try {
-      const startOfMonth = dayjs(month).startOf('month').format('YYYY-MM-DD');
-      const endOfMonth = dayjs(month).endOf('month').format('YYYY-MM-DD');
+      const startOfMonth = dayjs(month).startOf("month").format("YYYY-MM-DD");
+      const endOfMonth = dayjs(month).endOf("month").format("YYYY-MM-DD");
 
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/schedules/staff/team/?start_date=${startOfMonth}&end_date=${endOfMonth}`,
@@ -66,17 +67,20 @@ const SchedulePage = () => {
       );
 
       const schedulesByDate = {};
-      Object.keys(response.data).forEach(date => {
+      Object.keys(response.data).forEach((date) => {
         const dept = session?.user?.dept;
         if (response.data[date] && response.data[date][dept]) {
           const allStaff = {};
-          Object.keys(response.data[date][dept]).forEach(role => {
+          Object.keys(response.data[date][dept]).forEach((role) => {
             const roleData = response.data[date][dept][role];
-            Object.keys(roleData).forEach(location => {
+            Object.keys(roleData).forEach((location) => {
               if (!allStaff[location]) {
                 allStaff[location] = [];
               }
-              allStaff[location] = [...allStaff[location], ...roleData[location]];
+              allStaff[location] = [
+                ...allStaff[location],
+                ...roleData[location],
+              ];
             });
           });
           schedulesByDate[date] = allStaff;
@@ -98,7 +102,7 @@ const SchedulePage = () => {
 
   const handleMonthChange = (direction) => {
     setSelectedMonth((prev) =>
-      direction === 'prev' ? prev.subtract(1, 'month') : prev.add(1, 'month')
+      direction === "prev" ? prev.subtract(1, "month") : prev.add(1, "month")
     );
   };
 
@@ -110,7 +114,7 @@ const SchedulePage = () => {
     if (!day || !scheduleForDay) return;
 
     setSelectedDayData({
-      date: day.format('MMMM D, YYYY'),
+      date: day.format("MMMM D, YYYY"),
       scheduleType: displayFilter,
       users: scheduleForDay[displayFilter] || [],
     });
@@ -123,9 +127,16 @@ const SchedulePage = () => {
   };
 
   return (
-    <Box sx={{ padding: '20px' }}>
+    <Box sx={{ padding: "20px" }}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+        <Box
+          sx={{
+            mb: 2,
+            display: "flex",
+            justifyContent: "end",
+            alignItems: "center",
+          }}
+        >
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Display</InputLabel>
             <Select
@@ -142,73 +153,101 @@ const SchedulePage = () => {
           </FormControl>
         </Box>
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <IconButton onClick={() => handleMonthChange('prev')}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 2 }}
+        >
+          <IconButton onClick={() => handleMonthChange("prev")}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h5">
-            {selectedMonth.format('MMMM YYYY')}
+            {selectedMonth.format("MMMM YYYY")}
           </Typography>
-          <IconButton onClick={() => handleMonthChange('next')}>
+          <IconButton onClick={() => handleMonthChange("next")}>
             <ArrowForwardIcon />
           </IconButton>
         </Box>
 
         <Grid container spacing={1}>
-          {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day) => (
+          {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((day) => (
             <Grid item xs={12 / 7} key={day}>
-              <Typography variant="subtitle2" align="center">{day}</Typography>
+              <Typography variant="subtitle2" align="center">
+                {day}
+              </Typography>
             </Grid>
           ))}
         </Grid>
 
         <Grid container spacing={2}>
           {getDaysInMonthWithPadding(selectedMonth).map((day, index) => {
-            const formattedDay = day ? day.format('YYYY-MM-DD') : null;
-            const scheduleForDay = formattedDay ? teamSchedules[formattedDay] : null;
-            const users = scheduleForDay ? (scheduleForDay[displayFilter] || []) : [];
-            const isOfficialHoliday = scheduleForDay?.['Official holiday']?.length > 0;
-            const isToday = day && day.isSame(dayjs(), 'day');
+            const formattedDay = day ? day.format("YYYY-MM-DD") : null;
+            const scheduleForDay = formattedDay
+              ? teamSchedules[formattedDay]
+              : null;
+            const users = scheduleForDay
+              ? scheduleForDay[displayFilter] || []
+              : [];
+            const isOfficialHoliday =
+              scheduleForDay?.["Official holiday"]?.length > 0;
+            const isToday = day && day.isSame(dayjs(), "day");
 
             return (
               <Grid item xs={12 / 7} key={index}>
                 <Paper
                   elevation={3}
                   sx={{
-                    padding: '10px',
-                    minHeight: '120px',
-                    maxHeight: '120px',
-                    overflow: 'auto',
-                    backgroundColor: isToday ? (theme.palette.mode === 'dark' ? '#3a3a3a' : '#e0e0e0') : 'transparent',
-                    cursor: scheduleForDay ? 'pointer' : 'default',
-                    '&:hover': scheduleForDay ? {
-                      backgroundColor: isToday
-                        ? (theme.palette.mode === 'dark' ? '#4a4a4a' : '#d0d0d0')
-                        : (theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5'),
-                    } : {},
+                    padding: "10px",
+                    minHeight: "120px",
+                    maxHeight: "120px",
+                    overflow: "auto",
+                    backgroundColor: isToday
+                      ? theme.palette.mode === "dark"
+                        ? "#3a3a3a"
+                        : "#e0e0e0"
+                      : "transparent",
+                    cursor: scheduleForDay ? "pointer" : "default",
+                    "&:hover": scheduleForDay
+                      ? {
+                          backgroundColor: isToday
+                            ? theme.palette.mode === "dark"
+                              ? "#4a4a4a"
+                              : "#d0d0d0"
+                            : theme.palette.mode === "dark"
+                              ? "#2a2a2a"
+                              : "#f5f5f5",
+                        }
+                      : {},
                   }}
                   onClick={() => handleDayClick(day, scheduleForDay)}
                 >
                   {day ? (
                     <>
                       <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {day.format('D')}
+                        {day.format("D")}
                       </Typography>
                       {isOfficialHoliday && (
                         <Typography
                           variant="body2"
                           sx={{
-                            color: '#FFC107',
-                            fontWeight: 'bold',
+                            color: "#FFC107",
+                            fontWeight: "bold",
                             mb: 0.5,
-                            fontSize: '0.75rem',
+                            fontSize: "0.75rem",
                           }}
                         >
                           Official holiday
                         </Typography>
                       )}
                       {users.length > 0 && (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 0.5,
+                          }}
+                        >
                           {users.map((user, userIndex) => (
                             <Chip
                               key={userIndex}
@@ -217,8 +256,8 @@ const SchedulePage = () => {
                               color="primary"
                               variant="outlined"
                               sx={{
-                                fontSize: '0.7rem',
-                                height: '22px',
+                                fontSize: "0.7rem",
+                                height: "22px",
                               }}
                             />
                           ))}
@@ -226,7 +265,7 @@ const SchedulePage = () => {
                       )}
                     </>
                   ) : (
-                    <Box sx={{ minHeight: '40px' }}></Box>
+                    <Box sx={{ minHeight: "40px" }}></Box>
                   )}
                 </Paper>
               </Grid>
@@ -240,21 +279,20 @@ const SchedulePage = () => {
           maxWidth="sm"
           fullWidth
         >
-          <DialogTitle>
-            {selectedDayData?.date}
-          </DialogTitle>
+          <DialogTitle>{selectedDayData?.date}</DialogTitle>
           <DialogContent>
             {selectedDayData && (
               <Box>
                 <Typography
                   variant="subtitle1"
                   sx={{
-                    fontWeight: 'bold',
-                    color: 'primary.main',
+                    fontWeight: "bold",
+                    color: "primary.main",
                     mb: 2,
                   }}
                 >
-                  {selectedDayData.scheduleType} ({selectedDayData.users.length})
+                  {selectedDayData.scheduleType} ({selectedDayData.users.length}
+                  )
                 </Typography>
                 {selectedDayData.users.length > 0 ? (
                   <List dense>
@@ -281,10 +319,10 @@ const SchedulePage = () => {
       </LocalizationProvider>
     </Box>
   );
-}
+};
 
 function getDaysInMonthWithPadding(selectedMonth) {
-  const firstDayOfMonth = selectedMonth.startOf('month');
+  const firstDayOfMonth = selectedMonth.startOf("month");
   const daysInMonth = selectedMonth.daysInMonth();
   const startDayOfWeek = firstDayOfMonth.day();
   const daysArray = [];

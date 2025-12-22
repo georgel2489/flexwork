@@ -125,7 +125,12 @@ describe("arrangementService", () => {
 
       RequestGroup.findAll = jest.fn().mockResolvedValue(mockRequestGroups);
       RequestGroup.count = jest.fn().mockResolvedValue(1);
-      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
+      Staff.findByPk = jest.fn().mockResolvedValue({
+        staff_id: 1,
+        staff_fname: "Manager",
+        staff_lname: "User",
+        role_id: 1,
+      });
 
       const manager_id = 1;
 
@@ -152,7 +157,12 @@ describe("arrangementService", () => {
     it("should return an empty array when there are no pending arrangements for the manager", async () => {
       RequestGroup.findAll = jest.fn().mockResolvedValue([]);
       RequestGroup.count = jest.fn().mockResolvedValue(0);
-      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
+      Staff.findByPk = jest.fn().mockResolvedValue({
+        staff_id: 1,
+        staff_fname: "Manager",
+        staff_lname: "User",
+        role_id: 1,
+      });
 
       const manager_id = 1;
 
@@ -178,8 +188,15 @@ describe("arrangementService", () => {
     });
 
     it("should throw an error if fetching arrangements fails", async () => {
-      Staff.findByPk = jest.fn().mockResolvedValue({ staff_id: 1, staff_fname: "Manager", staff_lname: "User", role_id: 1 });
-      RequestGroup.count = jest.fn().mockRejectedValue(new Error("Database error"));
+      Staff.findByPk = jest.fn().mockResolvedValue({
+        staff_id: 1,
+        staff_fname: "Manager",
+        staff_lname: "User",
+        role_id: 1,
+      });
+      RequestGroup.count = jest
+        .fn()
+        .mockRejectedValue(new Error("Database error"));
 
       const manager_id = 1;
 
@@ -224,9 +241,8 @@ describe("arrangementService", () => {
       };
       sequelize.transaction.mockResolvedValue(transactionMock);
 
-      const result = await arrangementService.createArrangement(
-        arrangementData
-      );
+      const result =
+        await arrangementService.createArrangement(arrangementData);
 
       expect(ArrangementRequest.findAll).toHaveBeenCalledWith({
         include: [

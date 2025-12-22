@@ -27,7 +27,7 @@ describe("authController", () => {
       json: jest.fn(),
     };
   });
-  
+
   describe("login", () => {
     it("should return a token when login is successful", async () => {
       const mockToken = "mockToken";
