@@ -275,7 +275,10 @@ function getDaysInMonthWithPadding(selectedMonth) {
   const startDayOfWeek = firstDayOfMonth.day();
   const daysArray = [];
 
-  for (let i = 0; i < startDayOfWeek; i++) {
+  // Adjust for Monday start (ISO week): 0=Sunday becomes 6, 1=Monday becomes 0, etc.
+  const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+
+  for (let i = 0; i < adjustedStartDay; i++) {
     daysArray.push(null);
   }
 

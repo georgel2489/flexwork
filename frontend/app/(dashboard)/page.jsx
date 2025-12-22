@@ -102,6 +102,7 @@ export default function HomePage() {
       <Grid container spacing={4}>
         {statsWithIcons.map((stat, index) => (
           <Grid
+            key={index}
             display="flex"
             justifyContent="center"
             alignItems="center"
