@@ -10,8 +10,10 @@ const providers = [
     },
     authorize: async (credentials) => {
       try {
+        // Use internal Docker network URL for server-side calls
+        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+          `${apiUrl}/auth/login`,
           {
             email: credentials.email,
             password: credentials.password,
